@@ -1,0 +1,82 @@
+﻿@page
+@model IndexModel
+@{
+	ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+	<h1 class="display-4">Welcome</h1>
+
+	<div id="start_download_block" class="block">
+		<div class="block_header">
+			<p>Start download</p>
+		</div>
+
+		<div class="block_container">
+			<div class="input_line">
+				<label for="downloadDirectories"> Download directory </label>
+				<select id="downloadDirectories">
+					@foreach (var directory in Model.DownloadDirectoryNames)
+					{
+						<option value="@directory"> @directory </option>
+					}
+				</select>
+				<button onclick="reloadDownloadDirectories()" class="refresh_button"></button>
+			</div>
+
+			<div class="input_line">
+				<label for="downloadLink"> Download link </label>
+				<input id="downloadLink" type="text" />
+			</div>
+
+			<div class="input_line">
+				<label for="downloadFileName"> File name (optional) </label>
+				<input id="downloadFileName" type="text" />
+			</div>
+
+			<hr />
+
+			<button onclick="startDownload()">Start download</button>
+		</div>
+	</div>
+
+
+
+	<div class="block">
+		<div class="block_header">
+			<p>Active</p>
+			<button onclick="getActiveDownloads()">Refresh</button>
+		</div>
+
+		<div id="activeDownloads" class="downloads_container"></div>
+	</div>
+
+	<div class="block">
+		<div class="block_header">
+			<p>Completed</p>
+			<button onclick="clearCompletedDownloads()">Clear all</button>
+		</div>
+
+		<div id="completedDownloads" class="downloads_container"> </div>
+	</div>
+
+
+
+	<div class="input_line">
+		<select id="editDirectories">
+			@foreach (var directory in Model.EditDirectoryNames)
+			{
+				<option value="@directory"> @directory </option>
+			}
+		</select>
+		<button onclick="reloadEditDirectories()" class="refresh_button"></button>
+	</div>
+
+	<button onclick="getFileNames()">Get file names</button>
+</div>
+
+
+
+<script type="text/javascript">
+	window.onload = () => connect()
+</script>

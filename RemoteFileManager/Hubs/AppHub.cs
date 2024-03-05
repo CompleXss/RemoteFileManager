@@ -1,0 +1,65 @@
+﻿using Microsoft.AspNetCore.SignalR;
+using RemoteFileManager.Models;
+using RemoteFileManager.Services;
+
+namespace RemoteFileManager.Hubs;
+
+public class AppHub(DownloadService downloadService, DirectoryService directoryService, ILogger<AppHub> logger) : Hub<IDownloadHub>
+{
+	private readonly DownloadService downloadService = downloadService;
+	private readonly ILogger<AppHub> logger = logger;
+
+	public override Task OnConnectedAsync()
+	{
+		GetDiskSpaceInfo("Test directory");
+		return base.OnConnectedAsync();
+	}
+
+
+
+
+	public async Task<bool> StartDownload(string url, string directoryName, string? fileName = null)
+	{
+		var uri = new Uri(url);
+		return await downloadService.StartDownload(uri, directoryName, fileName);
+	}
+
+	public bool CancelDownload(string downloadID)
+	{
+		bool cancelled = downloadService.CancelDownload(downloadID);
+
+		if (cancelled)
+			Clients.All.DownloadRemoved(downloadID, false);
+
+		return cancelled;
+	}
+
+	public bool PauseDownload(string downloadID)
+	{
+		bool paused = downloadService.PauseDownload(downloadID);
+
+		if (paused)
+			Clients.All.DownloadPaused(downloadID);
+
+		return paused;
+	}
+
+	public bool ResumeDownload(string downloadID)
+	{
+		bool resumed = downloadService.ResumeDownload(downloadID);
+
+		if (resumed)
+			Clients.All.DownloadResumed(downloadID);
+
+		return resumed;
+	}
+
+
+
+	public IEnumerable<Download> GetActiveDownloads() => downloadService.ActiveDownloads;
+	public IEnumerable<string> GetDownloadAllowedDirectoryNames() => directoryService.GetDownloadAllowedDirectories().Select(x => x.Name);
+	public IEnumerable<string> GetEditAllowedDirectoryNames() => directoryService.GetEditAllowedDirectories().Select(x => x.Name);
+	public IEnumerable<FileInfoModel> GetFilesInDirectoryByName(string directoryName) => directoryService.GetFilesInDirectoryByName(directoryName);
+
+	public DiskSpaceInfo? GetDiskSpaceInfo(string directoryName) => directoryService.GetDiskSpaceInfo(directoryName);
+}

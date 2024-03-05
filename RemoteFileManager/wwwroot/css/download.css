@@ -1,0 +1,110 @@
+﻿.download {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+
+    text-align: start;
+    font-size: 0.9em;
+
+    width: var(--download-width);
+
+    margin: var(--download-margin);
+    padding: 6px 10px;
+    border-radius: 6px;
+    background-color: #eee;
+
+    border: var(--download-border-width) solid lightgray;
+}
+
+.download .text_wrapper {
+    display: block;
+    flex: auto;
+    width: 0;
+    margin-right: 6px;
+}
+
+.download .top_wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+
+
+.download p {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+
+    margin: 0;
+    text-overflow: ellipsis;
+}
+
+.download .directory_name {
+    font-size: 0.9em;
+    width: fit-content;
+    height: fit-content;
+
+    padding: 0 8px;
+    border-radius: 6px;
+    background-color: lightgray;
+}
+
+
+
+.download .progress {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+
+    height: 4px;
+    width: auto;
+
+    margin: 0;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    border-radius: 0;
+    background-color: white;
+}
+
+.download .progress_bar {
+    width: 0%;
+    background-color: cornflowerblue;
+    /*transition: width 0.3s;*/
+}
+
+
+
+.download button {
+    display: inline;
+    aspect-ratio: 1;
+    height: 36px;
+
+    border: none;
+    background-color: transparent;
+}
+
+.download button:hover {
+    background-color: lightgray;
+}
+
+.download button:active {
+    background-color: #cacaca;
+}
+
+.download .cancel_button {
+    background-image: url(../svg/close.svg);
+    background-size: 55%;
+
+    margin-left: 4px;
+}
+
+.download .pause_button {
+    background-image: url(../svg/pause.svg);
+    background-size: 85%;
+}
+
+.download .resume_button {
+    background-image: url(../svg/playback.svg);
+    background-size: 55%;
+}

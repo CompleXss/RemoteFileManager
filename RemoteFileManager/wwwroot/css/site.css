@@ -1,0 +1,167 @@
+:root {
+   /* --accent: antiquewhite; */
+    --accent: #fff1dd;
+    --background: white;
+
+    --scrollbar-width: 6px;
+    --download-width: 350px;
+    --download-margin: 8px;
+    --download-border-width: 1px;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+body {
+    height: 100vh;
+    background-color: var(--background);
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+
+
+/* scroll bar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: #bbb;
+}
+
+/* button */
+button {
+    border-radius: 6px;
+    padding: 2px 12px;
+    border: 1px solid gray;
+
+    background-color: white;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100%;
+}
+button:hover {
+    background-color: #eee;
+}
+button:active {
+    background-color: #dfdfdf;
+}
+
+/* select & text input */
+select,
+input[type=text] {
+    margin: 4px;
+}
+
+select {
+    padding: 3px 6px;
+    padding-top: 2px;
+}
+
+/* hr */
+hr {
+    opacity: 1;
+    background-color: gray;
+}
+
+
+
+.block_header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 8px 15px;
+
+    border-radius: 6px;
+    background-color: var(--accent);
+
+    border-bottom: 1px solid gray;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+}
+.block_header > p {
+    margin: 0;
+}
+
+
+
+.block {
+    width: calc(var(--download-width) + 2 * var(--download-margin) + 2 * var(--download-border-width) + var(--scrollbar-width));
+    min-height: 150px;
+    text-align: start;
+    margin: 10px;
+    border-radius: 6px;
+    border: 1px solid gray;
+}
+
+.downloads_container {
+    width: 100%;
+    max-height: 270px;
+    overflow-y: scroll;
+}
+
+
+
+.block_container {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 15px;
+    width: 100%;
+}
+
+.block_container input,
+.block_container select {
+    flex-grow: 1;
+}
+
+.block_container label {
+    width: 180px;
+}
+
+/*.block_container > button {
+    margin-top: 16px;
+}*/
+
+.input_line {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+}
+
+
+
+.refresh_button {
+    display: inline;
+    aspect-ratio: 1;
+    height: 30px;
+    border-radius: 6px;
+
+    margin: 4px;
+    margin-left: 0;
+
+    background-image: url(../svg/refresh.svg);
+    background-size: 80%;
+}
+
+
+
+#start_download_block {
+    width: 600px;
+}
+
+
+
+
+
+
+@media (min-width: 768px) {
+}
