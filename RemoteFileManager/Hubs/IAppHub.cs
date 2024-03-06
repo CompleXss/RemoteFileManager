@@ -2,7 +2,7 @@
 
 namespace RemoteFileManager.Hubs;
 
-public interface IDownloadHub
+public interface IAppHub
 {
 	Task DownloadAdded(Download download);
 	Task DownloadRemoved(string downloadID, bool completed);

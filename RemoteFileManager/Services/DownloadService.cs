@@ -4,10 +4,10 @@ using RemoteFileManager.Models;
 
 namespace RemoteFileManager.Services;
 
-public class DownloadService(IHubContext<AppHub, IDownloadHub> hub, DirectoryService directoryService, IHttpClientFactory httpClientFactory, ILogger<DownloadService> logger)
+public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService directoryService, IHttpClientFactory httpClientFactory, ILogger<DownloadService> logger)
 {
 	public List<Download> ActiveDownloads { get; } = new(8);
-	private readonly IHubContext<AppHub, IDownloadHub> hub = hub;
+	private readonly IHubContext<AppHub, IAppHub> hub = hub;
 	private readonly DirectoryService directoryService = directoryService;
 	private readonly IHttpClientFactory httpClientFactory = httpClientFactory;
 	private readonly ILogger<DownloadService> logger = logger;

@@ -4,7 +4,7 @@ using RemoteFileManager.Services;
 
 namespace RemoteFileManager.Hubs;
 
-public class AppHub(DownloadService downloadService, DirectoryService directoryService, ILogger<AppHub> logger) : Hub<IDownloadHub>
+public class AppHub(DownloadService downloadService, DirectoryService directoryService, ILogger<AppHub> logger) : Hub<IAppHub>
 {
 	private readonly DownloadService downloadService = downloadService;
 	private readonly ILogger<AppHub> logger = logger;
