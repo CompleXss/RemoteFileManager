@@ -10,5 +10,5 @@ public interface IAppHub
 	Task DownloadPaused(string downloadID);
 	Task DownloadResumed(string downloadID);
 	Task DownloadUpdated(string downloadID, long bytesDownloaded, long totalBytes, double speed);
-	Task DiskSpaceUpdated(string directoryName, DiskSpaceInfo? diskSpaceInfo);
+	Task DiskSpaceUpdated(string directoryName, DiskSpaceInfo? diskSpaceInfo); // TODO: don't send diskSpaceInfo if it is null?
 }
