@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using RemoteFileManager.Hubs;
-using RemoteFileManager.Models;
 
 namespace RemoteFileManager.Services;
 

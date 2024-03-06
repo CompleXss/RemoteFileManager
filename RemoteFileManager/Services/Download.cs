@@ -1,8 +1,9 @@
 ﻿using RemoteFileManager.Extensions;
+using RemoteFileManager.Models;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace RemoteFileManager.Models;
+namespace RemoteFileManager.Services;
 
 public class Download : IDisposable
 {
@@ -46,7 +47,7 @@ public class Download : IDisposable
 		this.logger = logger;
 		this.bufferSize = bufferSize;
 
-		this.ID = Guid.NewGuid().ToString();
+		ID = Guid.NewGuid().ToString();
 	}
 
 
@@ -62,7 +63,7 @@ public class Download : IDisposable
 				return true;
 		}
 
-		this.DirectoryName = directory.Name;
+		DirectoryName = directory.Name;
 
 		try
 		{
@@ -81,11 +82,11 @@ public class Download : IDisposable
 			// get fileName
 			if (!TryGetFileName(response, ref fileName))
 			{
-				this.FileName = string.Empty;
+				FileName = string.Empty;
 				logger.LogWarning("Could not obtain fileName. Download aborted.");
 				return false;
 			}
-			this.FileName = fileName = MakeFileNameUnique(directory.Path, fileName);
+			FileName = fileName = MakeFileNameUnique(directory.Path, fileName);
 			fileName += ".~"; // add temp extension
 
 
@@ -105,13 +106,13 @@ public class Download : IDisposable
 					await DownloadFromResponse(response, filePath, token);
 
 					// rename back to normal extension
-					if (!TryMoveFile(filePath, directory.Path + this.FileName, LogLevel.Information))
+					if (!TryMoveFile(filePath, directory.Path + FileName, LogLevel.Information))
 					{
 						// try add (1) to file end
-						this.FileName = MakeFileNameUnique(directory.Path, this.FileName);
-						logger.LogInformation("Trying to rename file from '{from}' to '{to}'", filePath, directory.Path + this.FileName);
+						FileName = MakeFileNameUnique(directory.Path, FileName);
+						logger.LogInformation("Trying to rename file from '{from}' to '{to}'", filePath, directory.Path + FileName);
 
-						if (!TryMoveFile(filePath, directory.Path + this.FileName, LogLevel.Error))
+						if (!TryMoveFile(filePath, directory.Path + FileName, LogLevel.Error))
 						{
 							TryDeleteFile(filePath); // if still could not move
 						}
