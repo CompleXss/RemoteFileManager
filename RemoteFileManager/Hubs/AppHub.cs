@@ -17,11 +17,21 @@ public class AppHub(DownloadService downloadService, DirectoryService directoryS
 
 
 
-
 	public async Task<bool> StartDownload(string url, string directoryName, string? fileName = null)
 	{
-		var uri = new Uri(url);
-		return await downloadService.StartDownload(uri, directoryName, fileName);
+		if (url is null)
+			return false;
+
+		try
+		{
+			var uri = new Uri(url);
+			return await downloadService.StartDownload(uri, directoryName, fileName);
+		}
+		catch (UriFormatException)
+		{
+			logger.LogWarning("Could not start download. Wrong url: '{uri}'", url);
+			return false;
+		}
 	}
 
 	public bool CancelDownload(string downloadID)
