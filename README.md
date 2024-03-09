@@ -71,3 +71,5 @@ In ``Directories/AllowedDirectories`` you can specify array of directories avail
 ```
 
 In ``Urls`` you can specify adress and port for ``https`` and ``http`` protocols (``0.0.0.0`` means ``localhost`` but available for other computers in the same local network)
+
+Note that app is redirecting to ``https`` by default
