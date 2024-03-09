@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34616.47
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteFileManager", "RemoteFileManager\RemoteFileManager.csproj", "{6932BC69-B061-4164-85BB-B4D469244FB0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteFileManager", "RemoteFileManager\RemoteFileManager.csproj", "{6932BC69-B061-4164-85BB-B4D469244FB0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
