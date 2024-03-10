@@ -72,7 +72,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 				logger.LogInformation("Download with id {id} has completed.", downloadID);
 
 			hub.Clients.All.DownloadRemoved(downloadID, completed);
-			hub.Clients.All.DiskSpaceUpdated(directoryName, directoryService.GetDiskSpaceInfo(directoryName));
+			directoryService.ReportDirectoryUpdated(hub, directoryName);
 		};
 
 

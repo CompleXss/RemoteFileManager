@@ -5,7 +5,7 @@
 }
 
 <div class="text-center">
-	<h1 class="display-4">Welcome</h1>
+	@* <h1 class="display-4">Welcome</h1> *@
 
 	<div id="start_download_block" class="block">
 		<div class="block_header">
@@ -15,7 +15,7 @@
 		<div class="block_container">
 			<div class="input_line">
 				<label for="downloadDirectories"> Download directory </label>
-				<select id="downloadDirectories">
+				<select id="downloadDirectories" disabled>
 					@foreach (var directory in Model.DownloadDirectoryNames)
 					{
 						<option value="@directory"> @directory </option>
@@ -42,9 +42,47 @@
 
 
 
+	<div id="manage_files_block" class="block">
+		<div class="block_header">
+			<p> Manage files </p>
+			<button onclick="reloadFileManager()"> Refresh </button>
+		</div>
+
+		<div class="block_container">
+			<div class="input_line">
+				<label for="editDirectories"> Directory </label>
+				<select onchange="editDirectoryOnChange(this.value)" id="editDirectories" disabled>
+					@foreach (var directory in Model.EditDirectoryNames)
+					{
+						<option value="@directory"> @directory </option>
+					}
+				</select>
+				@* <button onclick="reloadEditDirectories()" class="refresh_button"></button> *@
+			</div>
+
+			<div class="input_line">
+				<label for="fileToDelete"> File to delete </label>
+				<select id="fileToDelete" disabled></select>
+			</div>
+			<button onclick="deleteFile()"> DELETE </button>
+
+			<hr />
+
+			<div class="disk_space_container">
+				<p> Disk space </p>
+				<div class="progress">
+					<div id="disk_space_progress_bar" class="progress_bar"></div>
+				</div>
+				<p id="disk_space"> 0.0 GB available of 0.0 GB </p>
+			</div>
+		</div>
+	</div>
+
+
+
 	<div class="block">
 		<div class="block_header">
-			<p>Active</p>
+			<p> Active </p>
 			<button onclick="getActiveDownloads()">Refresh</button>
 		</div>
 
@@ -53,26 +91,12 @@
 
 	<div class="block">
 		<div class="block_header">
-			<p>Completed</p>
+			<p> Completed </p>
 			<button onclick="clearCompletedDownloads()">Clear all</button>
 		</div>
 
 		<div id="completedDownloads" class="downloads_container"> </div>
 	</div>
-
-
-
-	<div class="input_line">
-		<select id="editDirectories">
-			@foreach (var directory in Model.EditDirectoryNames)
-			{
-				<option value="@directory"> @directory </option>
-			}
-		</select>
-		<button onclick="reloadEditDirectories()" class="refresh_button"></button>
-	</div>
-
-	<button onclick="getFileNames()">Get file names</button>
 </div>
 
 

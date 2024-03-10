@@ -10,7 +10,7 @@ public class IndexModel(DirectoryService directoryService) : PageModel
 
 	public void OnGet()
 	{
-		DownloadDirectoryNames = directoryService.GetDownloadAllowedDirectories().Select(x => x.Name);
-		EditDirectoryNames = directoryService.GetEditAllowedDirectories().Select(x => x.Name);
+		//DownloadDirectoryNames = directoryService.GetDownloadAllowedDirectories().Select(x => x.Name);
+		//EditDirectoryNames = directoryService.GetEditAllowedDirectories().Select(x => x.Name);
 	}
 }

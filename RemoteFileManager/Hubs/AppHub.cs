@@ -9,12 +9,6 @@ public class AppHub(DownloadService downloadService, DirectoryService directoryS
 	private readonly DownloadService downloadService = downloadService;
 	private readonly ILogger<AppHub> logger = logger;
 
-	public override Task OnConnectedAsync()
-	{
-		GetDiskSpaceInfo("Test directory");
-		return base.OnConnectedAsync();
-	}
-
 
 
 	public async Task<bool> StartDownload(string url, string directoryName, string? fileName = null)
@@ -39,7 +33,7 @@ public class AppHub(DownloadService downloadService, DirectoryService directoryS
 		bool cancelled = downloadService.CancelDownload(downloadID);
 
 		if (cancelled)
-			Clients.All.DownloadRemoved(downloadID, false);
+			Clients.All.DownloadRemoved(downloadID, completed: false);
 
 		return cancelled;
 	}
@@ -69,7 +63,19 @@ public class AppHub(DownloadService downloadService, DirectoryService directoryS
 	public IEnumerable<Download> GetActiveDownloads() => downloadService.ActiveDownloads;
 	public IEnumerable<string> GetDownloadAllowedDirectoryNames() => directoryService.GetDownloadAllowedDirectories().Select(x => x.Name);
 	public IEnumerable<string> GetEditAllowedDirectoryNames() => directoryService.GetEditAllowedDirectories().Select(x => x.Name);
-	public IEnumerable<FileInfoModel> GetFilesInDirectoryByName(string directoryName) => directoryService.GetFilesInDirectoryByName(directoryName);
 
-	public DiskSpaceInfo? GetDiskSpaceInfo(string directoryName) => directoryService.GetDiskSpaceInfo(directoryName);
+	public IEnumerable<EditAllowedDirectoryInfo> GetEditAllowedDirectoryInfos()
+	{
+		var directories = directoryService.GetEditAllowedDirectories();
+		return directories.Select(x => new EditAllowedDirectoryInfo
+		{
+			DirectoryName = x.Name,
+			DiskSpaceInfo = directoryService.GetDiskSpaceInfo(x),
+			Files = directoryService.GetFilesInDirectory(x).ToArray()
+		});
+	}
+
+	//public IEnumerable<FileInfoModel> GetFilesInDirectoryByName(string directoryName) => directoryService.GetFilesInDirectory(directoryName);
+
+	//public DiskSpaceInfo? GetDiskSpaceInfo(string directoryName) => directoryService.GetDiskSpaceInfo(directoryName);
 }

@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using RemoteFileManager.Configuration;
+using RemoteFileManager.Hubs;
 using RemoteFileManager.Models;
 
 namespace RemoteFileManager.Services;
@@ -21,13 +23,18 @@ public class DirectoryService(IOptionsMonitor<DirectoryOptions> options)
 
 
 
-	public IEnumerable<FileInfoModel> GetFilesInDirectoryByName(string directoryName)
+	public IEnumerable<FileInfoModel> GetFilesInDirectory(string directoryName)
 	{
-		string? directoryPath = GetEditAllowedDirectories().FirstOrDefault(x => x.Name == directoryName)?.Path;
-		if (directoryPath is null)
+		var directory = GetEditAllowedDirectories().FirstOrDefault(x => x.Name == directoryName);
+		return GetFilesInDirectory(directory);
+	}
+
+	public IEnumerable<FileInfoModel> GetFilesInDirectory(DirectoryModel? directory)
+	{
+		if (!Directory.Exists(directory?.Path))
 			return [];
 
-		var files = Directory.EnumerateFiles(directoryPath);
+		var files = Directory.EnumerateFiles(directory.Path);
 		var fileInfos = files.Select(x => new FileInfoModel
 		{
 			Name = Path.GetFileName(x),
@@ -37,13 +44,36 @@ public class DirectoryService(IOptionsMonitor<DirectoryOptions> options)
 		return fileInfos;
 	}
 
+
+
 	public DiskSpaceInfo? GetDiskSpaceInfo(string directoryName)
 	{
-		var directoryPath = GetAllowedDirectoryInfoByName(directoryName)?.Path;
-		if (directoryPath is null)
+		var directory = GetAllowedDirectoryInfoByName(directoryName);
+		if (directory is null)
 			return null;
 
-		var drive = new DriveInfo(directoryPath);
+		return GetDiskSpaceInfo(directory);
+	}
+
+	public DiskSpaceInfo GetDiskSpaceInfo(DirectoryModel directory)
+	{
+		var drive = new DriveInfo(directory.Path);
 		return new DiskSpaceInfo(drive.AvailableFreeSpace, drive.TotalSize);
+	}
+
+
+
+
+
+	public Task ReportDirectoryUpdated(IHubContext<AppHub, IAppHub> hub, string directoryName)
+	{
+		var directory = GetAllowedDirectoryInfoByName(directoryName);
+		if (directory is null)
+			return Task.CompletedTask;
+
+		var diskSpace = GetDiskSpaceInfo(directory);
+		var files = GetFilesInDirectory(directory);
+
+		return hub.Clients.All.DirectoryUpdated(directoryName, diskSpace, files);
 	}
 }
