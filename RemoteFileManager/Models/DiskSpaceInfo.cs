@@ -1,13 +1,7 @@
 ﻿namespace RemoteFileManager.Models;
 
-public readonly struct DiskSpaceInfo
+public readonly struct DiskSpaceInfo(long free, long total)
 {
-	public long Free { get; init; }
-	public long Total { get; init; }
-
-	public DiskSpaceInfo(long free, long total) : this()
-	{
-		Free = free;
-		Total = total;
-	}
+	public long Free { get; init; } = free;
+	public long Total { get; init; } = total;
 }
