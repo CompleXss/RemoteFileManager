@@ -6,5 +6,5 @@ public class DirectoryOptions
 {
 	public const string SECTION_NAME = "Directories";
 
-	public required DirectoryModel[] AllowedDirectories { get; init; }
+	public DirectoryModel[] AllowedDirectories { get; init; } = [];
 }
