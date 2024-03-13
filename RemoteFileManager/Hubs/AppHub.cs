@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using RemoteFileManager.Extensions;
 using RemoteFileManager.Models;
 using RemoteFileManager.Services;
 
@@ -23,7 +24,7 @@ public class AppHub(DownloadService downloadService, DirectoryService directoryS
 		}
 		catch (UriFormatException)
 		{
-			logger.LogWarning("Could not start download. Wrong url: '{uri}'", url);
+			logger.WrongUrlCouldNotStartDownload(url);
 			return false;
 		}
 	}

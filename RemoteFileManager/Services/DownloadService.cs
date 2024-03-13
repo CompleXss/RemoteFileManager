@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using RemoteFileManager.Extensions;
 using RemoteFileManager.Hubs;
-using System.Security;
 
 namespace RemoteFileManager.Services;
 
 public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService directoryService, IHttpClientFactory httpClientFactory, ILogger<DownloadService> logger, FileLogger fileLogger)
 {
+	private const int REPORT_PROGRESS_DELAY_MS = 500;
+
 	public List<Download> ActiveDownloads { get; } = new(8);
 	private readonly IHubContext<AppHub, IAppHub> hub = hub;
 	private readonly DirectoryService directoryService = directoryService;
@@ -21,7 +23,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 		var directory = directoryService.GetAllowedDirectoryInfoByName(directoryName);
 		if (directory is null)
 		{
-			logger.LogWarning("Invalid directory name '{directoryName}'. Download aborted.", directoryName);
+			logger.InvalidDirectoryDownloadAborted(directoryName);
 			return false;
 		}
 
@@ -32,13 +34,10 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 		{
 			ActiveDownloads.Add(download);
 
-			logger.LogInformation("Download with id {id} has started.", download.ID);
+			logger.DownloadStarted(download.FileName, download.ID);
 			hub.Clients.All.DownloadAdded(download);
 
-
 			// Report progress info
-			const int delayMs = 500;
-
 			Task.Run(async () =>
 			{
 				DateTime prevTime = DateTime.Now;
@@ -47,7 +46,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 				do
 				{
 					while (download.Paused)
-						await Task.Delay(delayMs);
+						await Task.Delay(REPORT_PROGRESS_DELAY_MS);
 
 					double secondsElapsed = (DateTime.Now - prevTime).TotalSeconds;
 					prevTime = DateTime.Now;
@@ -56,7 +55,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 					bytesDownloaded = download.BytesDownloaded;
 
 					_ = hub.Clients.All.DownloadUpdated(download.ID, bytesDownloaded, download.TotalBytes, download.Speed);
-					await Task.Delay(delayMs);
+					await Task.Delay(REPORT_PROGRESS_DELAY_MS);
 				}
 				while (progressWorking);
 			});
@@ -67,16 +66,16 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 			progressWorking = false;
 
 			ActiveDownloads.Remove(download);
-			var downloadID = download.ID;
+			string downloadID = download.ID;
+			string fileName = download.FileName;
+
 			download.Dispose();
 
 			if (completed)
 			{
-				logger.LogInformation("Download with id {id} has completed.", downloadID);
-				fileLogger.LogInformation("Download of file {fileName} has completed.", download.FileName);
+				logger.DownloadCompleted(fileName);
+				fileLogger.DownloadCompleted(fileName);
 			}
-			else
-				fileLogger.LogInformation("Download of file {fileName} has not been completed.", download.FileName);
 
 			hub.Clients.All.DownloadRemoved(downloadID, completed);
 			directoryService.ReportDirectoryUpdated(hub, directoryName);
@@ -101,14 +100,15 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 		var download = GetDownloadInfo(downloadID);
 		if (download is null || download.IsCancellationRequested)
 		{
-			logger.LogInformation("Could not cancel download. There was no active download with id {id}", downloadID);
+			logger.CouldNotCancelDownload(downloadID);
 			return false;
 		}
 
+		string fileName = download.FileName;
 		download.Cancel();
 		download.Dispose();
 
-		logger.LogInformation("Download with id {id} has been cancelled.", downloadID);
+		logger.DownloadCancelled(fileName);
 		return true;
 	}
 
