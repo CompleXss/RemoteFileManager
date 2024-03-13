@@ -44,11 +44,12 @@ To configure app, edit ``appsettings.json`` which looks like this:
     "AllowedDirectories": [
       {
         "Name": "Test directory",
-        "Path": "C:/test/",
+        "Path": "./test/",
         "CreateAllowed": true,
         "EditAllowed": true
       }
-    ]
+    ],
+    "FilesChangesLogFile": "./logs/files-changes.log"
   },
   "Logging": {
     "LogLevel": {
@@ -59,17 +60,20 @@ To configure app, edit ``appsettings.json`` which looks like this:
   "Urls": "https://0.0.0.0:7007;http://0.0.0.0:7006",
   "AllowedHosts": "*"
 }
-
 ```
 
 In ``Directories/AllowedDirectories`` you can specify array of directories available to clients
 ```
 "Name"           - directory name that will be shown to client
-"Path"           - path to directory (client won't see it)
-"CreateAllowed"  - allows clients to download files into this directory
-"EditAllowed"    - allows clients to delete files from this directory
+"Path"           - path to directory (client won't see it), may be either absolute or relative
+"CreateAllowed"  - allows client to download files into this directory
+"EditAllowed"    - allows client to edit and delete files in this directory
 ```
 
-In ``Urls`` you can specify adress and port for ``https`` and ``http`` protocols (``0.0.0.0`` means ``localhost`` but available for other computers in the same local network)
+Note that ``AllowedDirectories`` are constantly monitored for changes. If specified directory becomes unavailable (e.g. you delete it) program will try to recreate it. If this problem can't be fixed, an error is logged and you should resave ``appsetting.json`` file or reload the whole program.<br/>Be aware of this behaviour!
+
+In ``Directories/FilesChangesLogFile`` you can specify location of the log file with ``"file was created / file was deleted"`` contents
+
+In ``Urls`` you can specify address and port for ``https`` and/or ``http`` protocols (``0.0.0.0`` means ``localhost`` but available for other computers in the same local network)
 
 Note that app is redirecting to ``https`` by default

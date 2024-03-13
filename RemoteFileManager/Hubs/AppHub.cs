@@ -8,9 +8,8 @@ namespace RemoteFileManager.Hubs;
 public class AppHub(DownloadService downloadService, DirectoryService directoryService, ILogger<AppHub> logger) : Hub<IAppHub>
 {
 	private readonly DownloadService downloadService = downloadService;
+	private readonly DirectoryService directoryService = directoryService;
 	private readonly ILogger<AppHub> logger = logger;
-
-
 
 	public async Task<bool> StartDownload(string url, string directoryName, string? fileName = null)
 	{
@@ -58,6 +57,8 @@ public class AppHub(DownloadService downloadService, DirectoryService directoryS
 
 		return resumed;
 	}
+
+	public void DeleteFile(string directoryName, string fileName) => directoryService.DeleteFile(directoryName, fileName);
 
 
 

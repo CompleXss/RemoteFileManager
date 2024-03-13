@@ -75,7 +75,6 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 			}
 
 			hub.Clients.All.DownloadRemoved(download.ID, completed);
-			directoryService.ReportDirectoryUpdated(hub, directoryName);
 		};
 
 
