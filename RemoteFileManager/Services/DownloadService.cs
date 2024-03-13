@@ -1,15 +1,17 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using RemoteFileManager.Hubs;
+using System.Security;
 
 namespace RemoteFileManager.Services;
 
-public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService directoryService, IHttpClientFactory httpClientFactory, ILogger<DownloadService> logger)
+public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService directoryService, IHttpClientFactory httpClientFactory, ILogger<DownloadService> logger, FileLogger fileLogger)
 {
 	public List<Download> ActiveDownloads { get; } = new(8);
 	private readonly IHubContext<AppHub, IAppHub> hub = hub;
 	private readonly DirectoryService directoryService = directoryService;
 	private readonly IHttpClientFactory httpClientFactory = httpClientFactory;
 	private readonly ILogger<DownloadService> logger = logger;
+	private readonly FileLogger fileLogger = fileLogger;
 
 
 
@@ -69,7 +71,12 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 			download.Dispose();
 
 			if (completed)
+			{
 				logger.LogInformation("Download with id {id} has completed.", downloadID);
+				fileLogger.LogInformation("Download of file {fileName} has completed.", download.FileName);
+			}
+			else
+				fileLogger.LogInformation("Download of file {fileName} has not been completed.", download.FileName);
 
 			hub.Clients.All.DownloadRemoved(downloadID, completed);
 			directoryService.ReportDirectoryUpdated(hub, directoryName);
