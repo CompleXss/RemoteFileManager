@@ -20,6 +20,10 @@ public class FileLogger(string? filePath) : ILogger
 
 			try
 			{
+				var directory = Path.GetDirectoryName(filePath);
+				if (!string.IsNullOrWhiteSpace(directory))
+					Directory.CreateDirectory(directory);
+
 				File.AppendAllText(filePath, "[" + DateTime.Now.ToString() + "] - " + logLevel.ToString() + ": " + formatter(state, exception) + n + exc);
 			}
 			catch (Exception)

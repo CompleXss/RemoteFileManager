@@ -57,7 +57,9 @@ public class DirectoryService(IOptionsMonitor<DirectoryOptions> options)
 
 	public DiskSpaceInfo GetDiskSpaceInfo(DirectoryModel directory)
 	{
-		var drive = new DriveInfo(directory.Path);
+		string absolutePath = Path.GetFullPath(directory.Path);
+		var drive = new DriveInfo(absolutePath);
+
 		return new DiskSpaceInfo(drive.AvailableFreeSpace, drive.TotalSize);
 	}
 

@@ -384,7 +384,7 @@ function showFilesToDelete(directoryName) {
     select.disabled = options.length === 0
 }
 
-function onDirectoryUpdated(directoryName, filesInfo, diskSpaceInfo) {
+function onDirectoryUpdated(directoryName, diskSpaceInfo, filesInfo) {
     diskSpaces[directoryName] = diskSpaceInfo
     files[directoryName] = filesInfo
 
