@@ -18,7 +18,13 @@ public class FileLogger(string? filePath) : ILogger
 			if (exception is not null)
 				exc = n + exception.GetType() + ": " + exception.Message + n + exception.StackTrace + n;
 
-			File.AppendAllText(filePath, logLevel.ToString() + ": " + DateTime.Now.ToString() + " " + formatter(state, exception) + n + exc);
+			try
+			{
+				File.AppendAllText(filePath, logLevel.ToString() + ": " + DateTime.Now.ToString() + " " + formatter(state, exception) + n + exc);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
