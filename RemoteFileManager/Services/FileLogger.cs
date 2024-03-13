@@ -20,7 +20,7 @@ public class FileLogger(string? filePath) : ILogger
 
 			try
 			{
-				File.AppendAllText(filePath, logLevel.ToString() + ": " + DateTime.Now.ToString() + " " + formatter(state, exception) + n + exc);
+				File.AppendAllText(filePath, "[" + DateTime.Now.ToString() + "] - " + logLevel.ToString() + ": " + formatter(state, exception) + n + exc);
 			}
 			catch (Exception)
 			{
