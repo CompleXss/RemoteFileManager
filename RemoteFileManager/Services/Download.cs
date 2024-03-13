@@ -19,6 +19,9 @@ public class Download : IDisposable
 	public string FileName { get; private set; } = string.Empty;
 	public string DirectoryName { get; private set; } = string.Empty;
 
+	[JsonIgnore]
+	public string DirectoryPath { get; private set; } = string.Empty;
+
 	public event Action? Started;
 	public event Action<bool>? Ended;
 
@@ -64,6 +67,7 @@ public class Download : IDisposable
 		}
 
 		DirectoryName = directory.Name;
+		DirectoryPath = directory.Path;
 
 		try
 		{

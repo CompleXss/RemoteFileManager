@@ -8,7 +8,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 {
 	private const int REPORT_PROGRESS_DELAY_MS = 500;
 
-	public List<Download> ActiveDownloads { get; } = new(8);
+	public List<Download> ActiveDownloads { get; } = new(16);
 	private readonly IHubContext<AppHub, IAppHub> hub = hub;
 	private readonly DirectoryService directoryService = directoryService;
 	private readonly IHttpClientFactory httpClientFactory = httpClientFactory;
@@ -34,7 +34,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 		{
 			ActiveDownloads.Add(download);
 
-			logger.DownloadStarted(download.FileName, download.ID);
+			logger.DownloadStarted(download);
 			hub.Clients.All.DownloadAdded(download);
 
 			// Report progress info
@@ -66,18 +66,15 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 			progressWorking = false;
 
 			ActiveDownloads.Remove(download);
-			string downloadID = download.ID;
-			string fileName = download.FileName;
-
 			download.Dispose();
 
 			if (completed)
 			{
-				logger.DownloadCompleted(fileName);
-				fileLogger.DownloadCompleted(fileName);
+				logger.DownloadCompleted(download);
+				fileLogger.DownloadCompleted(download);
 			}
 
-			hub.Clients.All.DownloadRemoved(downloadID, completed);
+			hub.Clients.All.DownloadRemoved(download.ID, completed);
 			directoryService.ReportDirectoryUpdated(hub, directoryName);
 		};
 
@@ -104,11 +101,10 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 			return false;
 		}
 
-		string fileName = download.FileName;
 		download.Cancel();
 		download.Dispose();
 
-		logger.DownloadCancelled(fileName);
+		logger.DownloadCancelled(download);
 		return true;
 	}
 
