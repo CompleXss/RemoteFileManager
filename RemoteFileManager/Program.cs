@@ -11,6 +11,14 @@ builder.Services.Configure<DirectoryOptions>(builder.Configuration.GetSection(Di
 builder.Services.AddSingleton<DirectoryService>();
 builder.Services.AddSingleton<DownloadService>();
 
+builder.Logging.Services.AddSingleton(provider =>
+{
+	string? logFilePath = builder.Configuration.GetValue<string>("FilesChangesLogFile");
+	return new FileLogger(logFilePath);
+});
+
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
