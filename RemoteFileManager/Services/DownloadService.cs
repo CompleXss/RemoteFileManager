@@ -17,7 +17,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 
 
 
-	/// <returns> Download ID or null if download has not started. </returns>
+	/// <returns> True if download has started, False if not. </returns>
 	public async Task<bool> StartDownload(Uri uri, string directoryName, string? fileName = null)
 	{
 		var directory = directoryService.GetAllowedDirectoryInfoByName(directoryName);
@@ -26,6 +26,13 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 			logger.InvalidDirectoryDownloadAborted(directoryName);
 			return false;
 		}
+		if (!directory.CreateAllowed)
+		{
+			logger.ProhibitedDirectoryDownloadAborted(directoryName);
+			return false;
+		}
+
+
 
 		var download = new Download(httpClientFactory, logger);
 		bool progressWorking = true;
@@ -93,7 +100,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 	/// <returns> True if successfully stopeed. False if not. </returns>
 	public bool CancelDownload(string downloadID)
 	{
-		var download = GetDownloadInfo(downloadID);
+		var download = FindDownloadByID(downloadID);
 		if (download is null || download.IsCancellationRequested)
 		{
 			logger.CouldNotCancelDownload(downloadID);
@@ -109,7 +116,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 
 	public bool PauseDownload(string downloadID)
 	{
-		var download = GetDownloadInfo(downloadID);
+		var download = FindDownloadByID(downloadID);
 		if (download is null) return false;
 
 		download.Pause();
@@ -118,7 +125,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 
 	public bool ResumeDownload(string downloadID)
 	{
-		var download = GetDownloadInfo(downloadID);
+		var download = FindDownloadByID(downloadID);
 		if (download is null) return false;
 
 		download.Resume();
@@ -127,7 +134,7 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 
 
 
-	public Download? GetDownloadInfo(string downloadID)
+	public Download? FindDownloadByID(string downloadID)
 	{
 		return ActiveDownloads.FirstOrDefault(x => x.ID == downloadID);
 	}

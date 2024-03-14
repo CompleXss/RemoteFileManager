@@ -13,26 +13,32 @@ public sealed class DirectoryService : IDisposable
 
 	public IOptionsMonitor<DirectoryOptions> Options { get; }
 	private readonly IHubContext<AppHub, IAppHub> hub;
+	private readonly ILogger<DirectoryService> logger;
+	private readonly FileLogger fileLogger;
 	private readonly List<IDisposable> watcherDisposables;
 	private readonly IDisposable? eventToDispose;
 
-	public DirectoryService(IOptionsMonitor<DirectoryOptions> options, IHubContext<AppHub, IAppHub> hub, ILogger<DirectoryService> logger)
+	public DirectoryService(IOptionsMonitor<DirectoryOptions> options, IHubContext<AppHub, IAppHub> hub, ILogger<DirectoryService> logger, FileLogger fileLogger)
 	{
 		this.Options = options;
 		this.hub = hub;
+		this.logger = logger;
+		this.fileLogger = fileLogger;
 
 
 
 		var directories = GetAllAllowedDirectories();
 		watcherDisposables = new(directories.Length * 2);
 
-		CreateWatchers(directories, logger);
+		CreateWatchers(directories);
 
 		// Update fs watchers when appconfig file changes
 		eventToDispose = options.OnChange(Helpers.Debounce<DirectoryOptions>(x =>
 		{
 			logger.LogInformation("App settings changed. Reloading file system watchers.");
-			CreateWatchers(x.AllowedDirectories, logger);
+			CreateWatchers(x.AllowedDirectories);
+
+			// TODO: report directories list changed
 
 			// tell client about changes
 			foreach (var dir in x.AllowedDirectories)
@@ -42,7 +48,8 @@ public sealed class DirectoryService : IDisposable
 
 
 
-	private void CreateWatchers(DirectoryModel[] directories, ILogger logger)
+	#region Watchers
+	private void CreateWatchers(DirectoryModel[] directories)
 	{
 		DisposeWatchers();
 
@@ -52,7 +59,7 @@ public sealed class DirectoryService : IDisposable
 				Directory.CreateDirectory(directory.Path);
 
 			// Lock directory using empty file
-			string lockFilePath = Path.Combine(directory.Path, "lockfile" + HIDDEN_TEMP_FILE_EXTENSION);
+			string lockFilePath = Path.Combine(directory.Path, "$lockfile" + HIDDEN_TEMP_FILE_EXTENSION);
 			var fs = new FileStream(lockFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 0, FileOptions.DeleteOnClose);
 			File.SetAttributes(fs.Name, FileAttributes.Hidden);
 
@@ -100,30 +107,33 @@ public sealed class DirectoryService : IDisposable
 
 		return hub.Clients.All.DirectoryUpdated(directoryName, diskSpace, files);
 	}
+	#endregion
 
 
 
-	public DirectoryModel[] GetAllAllowedDirectories() => Options.CurrentValue.AllowedDirectories;
-	public IEnumerable<DirectoryModel> GetDownloadAllowedDirectories() => Options.CurrentValue.AllowedDirectories.Where(x => x.CreateAllowed);
-	public IEnumerable<DirectoryModel> GetEditAllowedDirectories() => Options.CurrentValue.AllowedDirectories.Where(x => x.EditAllowed);
+	#region Get directories
+	public DirectoryModel[] GetAllAllowedDirectories()
+		=> Options.CurrentValue.AllowedDirectories;
+
+	public IEnumerable<DirectoryModel> GetDownloadAllowedDirectories()
+		=> Options.CurrentValue.AllowedDirectories.Where(x => x.CreateAllowed);
 
 	public DirectoryModel? GetAllowedDirectoryInfoByName(string name)
-	{
-		return Options.CurrentValue.AllowedDirectories.FirstOrDefault(x => x.Name == name);
-	}
+		=> Options.CurrentValue.AllowedDirectories.FirstOrDefault(x => x.Name == name);
+	#endregion
 
 
 
-	// Files
+	#region Files
 	public IEnumerable<FileInfoModel> GetFilesInDirectory(string directoryName)
 	{
-		var directory = GetEditAllowedDirectories().FirstOrDefault(x => x.Name == directoryName);
+		var directory = GetAllAllowedDirectories().FirstOrDefault(x => x.Name == directoryName);
 		return GetFilesInDirectory(directory);
 	}
 
 	public IEnumerable<FileInfoModel> GetFilesInDirectory(DirectoryModel? directory)
 	{
-		if (!Directory.Exists(directory?.Path))
+		if (!Directory.Exists(directory?.Path) || !directory.EditAllowed)
 			return [];
 
 		var files = Directory.EnumerateFiles(directory.Path);
@@ -136,9 +146,49 @@ public sealed class DirectoryService : IDisposable
 		return fileInfos;
 	}
 
+	// TODO: test if it works
+	public bool DeleteFile(string directoryName, string fileName)
+	{
+		var directory = GetAllowedDirectoryInfoByName(directoryName);
+		if (directory is null)
+		{
+			logger.InvalidDirectoryDeleteAborted(directoryName);
+			return false;
+		}
+		if (!directory.EditAllowed)
+		{
+			logger.ProhibitedDirectoryDeleteAborted(directoryName);
+			return false;
+		}
+
+		try
+		{
+			string fullPath = Path.GetFullPath(Path.Combine(directory.Path, fileName));
+
+			if (!File.Exists(fullPath))
+			{
+				logger.NoSuchFileDeleteAborted(fileName, directoryName, fullPath);
+				return false;
+			}
+
+			File.Delete(fullPath);
+			logger.FileDeleted(fileName, directoryName, fullPath);
+			fileLogger.FileDeleted(fileName, directoryName, fullPath);
+
+			return true;
+		}
+		catch (Exception e)
+		{
+			logger.CouldNotDeleteFile(fileName, directoryName, e.Message);
+			fileLogger.CouldNotDeleteFile(fileName, directoryName, e.Message);
+			return false;
+		}
+	}
+	#endregion
 
 
-	// Disk space
+
+	#region Disk space
 	public DiskSpaceInfo? GetDiskSpaceInfo(string directoryName)
 	{
 		var directory = GetAllowedDirectoryInfoByName(directoryName);
@@ -155,32 +205,11 @@ public sealed class DirectoryService : IDisposable
 
 		return new DiskSpaceInfo(drive.AvailableFreeSpace, drive.TotalSize);
 	}
+	#endregion
 
 
 
-	// Delete files
-
-	// TODO: add try-catch
-	// TODO: test if it works
-	public bool DeleteFile(string directoryName, string fileName)
-	{
-		var directory = GetAllowedDirectoryInfoByName(directoryName);
-		if (directory is null)
-			return false;
-
-		string fullPath = Path.GetFullPath(Path.Combine(directory.Path, fileName));
-
-		if (File.Exists(fullPath))
-		{
-			File.Delete(fullPath);
-			return true;
-		}
-
-		return false;
-	}
-
-
-
+	#region Dispose
 	public void Dispose()
 	{
 		DisposeWatchers();
@@ -194,4 +223,5 @@ public sealed class DirectoryService : IDisposable
 
 		watcherDisposables.Clear();
 	}
+	#endregion
 }

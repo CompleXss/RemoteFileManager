@@ -22,11 +22,14 @@ function pauseDownloadRequest(id) {
 function resumeDownloadRequest(id) {
     return connection.invoke('ResumeDownload', id)
 }
+function deleteFileRequest(directoryName, fileName) {
+    return connection.invoke('DeleteFile', directoryName, fileName)
+}
 function getDownloadAllowedDirectoryNamesRequest() {
     return connection.invoke('GetDownloadAllowedDirectoryNames')
 }
-function getEditAllowedDirectoryInfosRequest() {
-    return connection.invoke('GetEditAllowedDirectoryInfos')
+function getAllowedDirectoryInfosRequest() {
+    return connection.invoke('GetAllowedDirectoryInfos')
 }
 function getActiveDownloads() {
     return connection.invoke('GetActiveDownloads')
@@ -346,7 +349,7 @@ function reloadFileManager() {
 
     getFileToDeleteElement().disabled = true
 
-    return getEditAllowedDirectoryInfosRequest()
+    return getAllowedDirectoryInfosRequest()
         .then(infos => {
             if (!infos) return
 
@@ -397,13 +400,13 @@ function onDirectoryUpdated(directoryName, diskSpaceInfo, filesInfo) {
 // TODO: deleteFile
 function deleteFile() {
     const directoryName = getEditDirectoriesElement()?.value
-    const fileToDelete = getFileToDeleteElement()?.value
+    const fileName = getFileToDeleteElement()?.value
 
-    if (!directoryName || !fileToDelete || directoryName == '' || fileToDelete == '') return
+    if (!directoryName || !fileName || directoryName == '' || fileName == '') return
 
-    // TODO: confirm delete window
-
-    // TODO: delete file
+    if (confirm(`Are you sure you want to DELETE the file '${fileName}' from '${directoryName}'?`)) {
+        deleteFileRequest(directoryName, fileName)
+    }
 }
 
 

@@ -64,11 +64,10 @@ public class AppHub(DownloadService downloadService, DirectoryService directoryS
 
 	public IEnumerable<Download> GetActiveDownloads() => downloadService.ActiveDownloads;
 	public IEnumerable<string> GetDownloadAllowedDirectoryNames() => directoryService.GetDownloadAllowedDirectories().Select(x => x.Name);
-	public IEnumerable<string> GetEditAllowedDirectoryNames() => directoryService.GetEditAllowedDirectories().Select(x => x.Name);
 
-	public IEnumerable<EditAllowedDirectoryInfo> GetEditAllowedDirectoryInfos()
+	public IEnumerable<EditAllowedDirectoryInfo> GetAllowedDirectoryInfos()
 	{
-		var directories = directoryService.GetEditAllowedDirectories();
+		var directories = directoryService.GetAllAllowedDirectories();
 		return directories.Select(x => new EditAllowedDirectoryInfo
 		{
 			DirectoryName = x.Name,
@@ -76,8 +75,4 @@ public class AppHub(DownloadService downloadService, DirectoryService directoryS
 			Files = directoryService.GetFilesInDirectory(x).ToArray()
 		});
 	}
-
-	//public IEnumerable<FileInfoModel> GetFilesInDirectoryByName(string directoryName) => directoryService.GetFilesInDirectory(directoryName);
-
-	//public DiskSpaceInfo? GetDiskSpaceInfo(string directoryName) => directoryService.GetDiskSpaceInfo(directoryName);
 }
