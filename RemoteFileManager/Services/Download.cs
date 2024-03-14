@@ -2,6 +2,7 @@
 using RemoteFileManager.Models;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using System.Net.Mime;
 
 namespace RemoteFileManager.Services;
 
@@ -75,11 +76,8 @@ public class Download : IDisposable
 			var client = httpClientFactory.CreateClient(); // should NOT be disposed!
 			var response = await client.ReadResponseHeaders(uri, token);
 
-			if (response.StatusCode != System.Net.HttpStatusCode.OK)
-			{
-				logger.LogWarning("Did not get OK response from '{uri}'. Download aborted.", uri);
+			if (!IsResponseHasFile(response, uri))
 				return false;
-			}
 
 
 
@@ -90,8 +88,19 @@ public class Download : IDisposable
 				logger.LogWarning("Could not obtain fileName. Download aborted.");
 				return false;
 			}
+
+			// replace file extension if it's the same as temp extension
+			if (fileName.EndsWith(DirectoryService.HIDDEN_TEMP_FILE_EXTENSION))
+			{
+				const string NEW_EXT = "._";
+				int extLength = DirectoryService.HIDDEN_TEMP_FILE_EXTENSION.Length;
+				fileName = fileName[..^extLength] + NEW_EXT; // replace temp extension with '._' extension to avoid confusion
+
+				logger.LogWarning("Name of the downloading file had prohibited extension ({oldExtension}). It was replaced with ({newExtension})", DirectoryService.HIDDEN_TEMP_FILE_EXTENSION, NEW_EXT);
+			}
+
 			FileName = fileName = MakeFileNameUnique(directory.Path, fileName);
-			fileName += DirectoryService.HIDDEN_TEMP_FILE_EXTENSION; // add temp extension
+			fileName += DirectoryService.HIDDEN_TEMP_FILE_EXTENSION; // add temp extension during download
 
 
 
@@ -154,6 +163,24 @@ public class Download : IDisposable
 			Ended?.Invoke(false);
 			return false;
 		}
+	}
+
+	private bool IsResponseHasFile(HttpResponseMessage response, Uri uri)
+	{
+		if (response.StatusCode != System.Net.HttpStatusCode.OK)
+		{
+			logger.LogWarning("Did not get OK response from '{uri}'. Download aborted.", uri);
+			return false;
+		}
+
+		if (response.Content.Headers.ContentDisposition?.DispositionType == DispositionTypeNames.Attachment)
+			return true;
+
+		if (response.Content.Headers.ContentType?.MediaType != MediaTypeNames.Text.Html)
+			return true;
+
+		logger.LogWarning("Provided url's content is not an attachment and is text/html. It's probably not a file. Download aborted. Url: {url}", uri);
+		return false;
 	}
 
 
