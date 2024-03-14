@@ -18,9 +18,11 @@ public static class HttpExtensions
 		}
 
 		Uri uri = response.RequestMessage.RequestUri;
+		var ctxDisposition = response.Content.Headers.ContentDisposition;
 
 		filename =
-				response.Content.Headers.ContentDisposition?.FileName?.Replace("\"", "")
+			ctxDisposition?.FileNameStar?.RemoveQuotationMarksIfPresent()
+			?? ctxDisposition?.FileName?.RemoveQuotationMarksIfPresent()
 				?? Path.GetFileName(uri.LocalPath);
 
 		return true;
