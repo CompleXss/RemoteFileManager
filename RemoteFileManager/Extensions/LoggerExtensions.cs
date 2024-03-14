@@ -7,7 +7,7 @@ public static partial class LoggerExtensions
 	[LoggerMessage(EventId = 0, Level = LogLevel.Information, Message = "Started downloading file `{fileName}` to `{directoryName}` ({fullPath}). Download ID: `{id}`")]
 	public static partial void DownloadStarted(this ILogger logger, string fileName, string directoryName, string fullPath, string id);
 
-	[LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Completed downloading file `{fileName}` to `{directoryName}` ({fullPath})")]
+	[LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Downloaded file `{fileName}` to `{directoryName}` ({fullPath})")]
 	public static partial void DownloadCompleted(this ILogger logger, string fileName, string directoryName, string fullPath);
 
 	[LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Cancelled downloading file `{fileName}` to `{directoryName}` ({fullPath})")]
