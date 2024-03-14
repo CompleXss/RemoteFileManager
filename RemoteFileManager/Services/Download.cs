@@ -91,7 +91,7 @@ public class Download : IDisposable
 				return false;
 			}
 			FileName = fileName = MakeFileNameUnique(directory.Path, fileName);
-			fileName += ".~"; // add temp extension
+			fileName += DirectoryService.HIDDEN_TEMP_FILE_EXTENSION; // add temp extension
 
 
 
@@ -212,7 +212,7 @@ public class Download : IDisposable
 		string extension = Path.GetExtension(fileName);
 		int tries = 1;
 
-		while (File.Exists(Path.Combine(directory, fileName)) || File.Exists(Path.Combine(directory, fileName + DirectoryService.HIDDEN_TEMP_FILE_EXT)))
+		while (File.Exists(Path.Combine(directory, fileName)) || File.Exists(Path.Combine(directory, fileName + DirectoryService.HIDDEN_TEMP_FILE_EXTENSION)))
 		{
 			fileName = string.Format("{0} ({1}){2}", name, tries++, extension);
 		}

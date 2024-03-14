@@ -9,7 +9,7 @@ namespace RemoteFileManager.Services;
 
 public sealed class DirectoryService : IDisposable
 {
-	public const string HIDDEN_TEMP_FILE_EXT = ".~";
+	public const string HIDDEN_TEMP_FILE_EXTENSION = ".~";
 
 	public IOptionsMonitor<DirectoryOptions> Options { get; }
 	private readonly IHubContext<AppHub, IAppHub> hub;
@@ -52,7 +52,7 @@ public sealed class DirectoryService : IDisposable
 				Directory.CreateDirectory(directory.Path);
 
 			// Lock directory using empty file
-			string lockFilePath = Path.Combine(directory.Path, "lockfile" + HIDDEN_TEMP_FILE_EXT);
+			string lockFilePath = Path.Combine(directory.Path, "lockfile" + HIDDEN_TEMP_FILE_EXTENSION);
 			var fs = new FileStream(lockFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 0, FileOptions.DeleteOnClose);
 			File.SetAttributes(fs.Name, FileAttributes.Hidden);
 
@@ -83,7 +83,7 @@ public sealed class DirectoryService : IDisposable
 
 	private void Watcher_onEvent(FileSystemEventArgs e, string directoryName)
 	{
-		if (e.Name is null || e.Name.EndsWith(HIDDEN_TEMP_FILE_EXT) || Directory.Exists(e.FullPath))
+		if (e.Name is null || e.Name.EndsWith(HIDDEN_TEMP_FILE_EXTENSION) || Directory.Exists(e.FullPath))
 			return;
 
 		ReportDirectoryUpdated(directoryName);
@@ -127,7 +127,7 @@ public sealed class DirectoryService : IDisposable
 			return [];
 
 		var files = Directory.EnumerateFiles(directory.Path);
-		var fileInfos = files.Where(x => !x.EndsWith(HIDDEN_TEMP_FILE_EXT)).Select(x => new FileInfoModel
+		var fileInfos = files.Where(x => !x.EndsWith(HIDDEN_TEMP_FILE_EXTENSION)).Select(x => new FileInfoModel
 		{
 			Name = Path.GetFileName(x),
 			LastModifiedTime = File.GetLastWriteTimeUtc(x)
