@@ -9,9 +9,11 @@ namespace RemoteFileManager.Services;
 
 public sealed class DirectoryService : IDisposable
 {
+	public const string HIDDEN_TEMP_FILE_EXT = ".~";
+
 	public IOptionsMonitor<DirectoryOptions> Options { get; }
-	private readonly List<FileSystemWatcher> watchers;
 	private readonly IHubContext<AppHub, IAppHub> hub;
+	private readonly List<IDisposable> watcherDisposables;
 	private readonly IDisposable? eventToDispose;
 
 	public DirectoryService(IOptionsMonitor<DirectoryOptions> options, IHubContext<AppHub, IAppHub> hub, ILogger<DirectoryService> logger)
@@ -22,15 +24,17 @@ public sealed class DirectoryService : IDisposable
 
 
 		var directories = GetAllAllowedDirectories();
-		watchers = new(directories.Length);
+		watcherDisposables = new(directories.Length * 2);
+
 		CreateWatchers(directories, logger);
 
 		// Update fs watchers when appconfig file changes
 		eventToDispose = options.OnChange(Helpers.Debounce<DirectoryOptions>(x =>
 		{
-			logger.LogInformation("App settings reloaded. Reloading file system watchers.");
+			logger.LogInformation("App settings changed. Reloading file system watchers.");
 			CreateWatchers(x.AllowedDirectories, logger);
 
+			// tell client about changes
 			foreach (var dir in x.AllowedDirectories)
 				ReportDirectoryUpdated(dir.Name);
 		}));
@@ -47,6 +51,13 @@ public sealed class DirectoryService : IDisposable
 			if (!Directory.Exists(directory.Path))
 				Directory.CreateDirectory(directory.Path);
 
+			// Lock directory using empty file
+			string lockFilePath = Path.Combine(directory.Path, "lockfile" + HIDDEN_TEMP_FILE_EXT);
+			var fs = new FileStream(lockFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 0, FileOptions.DeleteOnClose);
+			File.SetAttributes(fs.Name, FileAttributes.Hidden);
+
+
+			// Create watcher
 			var watcher = new FileSystemWatcher(directory.Path, "*.*")
 			{
 				NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
@@ -62,48 +73,17 @@ public sealed class DirectoryService : IDisposable
 			watcher.Error += (sender, error) =>
 			{
 				var e = error.GetException();
-				logger.LogWarning("{className} produced an error in directory `{directoryPath}`: {error}", nameof(FileSystemWatcher), directory.Path, e.Message);
-				logger.LogWarning("Trying to recover from {className} error...", nameof(FileSystemWatcher));
-
-				// TODO: create lock-file '.lockFile' inside watched directories instead ???
-				// Or lock the directory itself ???
-
-				// TODO: tell client about an error and give him button to recreate watchers
-				try
-				{
-					watcher.EnableRaisingEvents = true;
-				}
-				catch (Exception ex1)
-				{
-					try
-					{
-						if (!Directory.Exists(directory.Path))
-						{
-							Directory.CreateDirectory(directory.Path);
-							watcher.EnableRaisingEvents = true;
-							logger.LogInformation("Successfully recovered from {className} error in directory `{directoryPath}` by recreating this folder. Continue listening for changes...", nameof(FileSystemWatcher), directory.Path);
-						}
-						else
-							logger.LogError("I don't know what to do with this {className} error: {error}", nameof(FileSystemWatcher), ex1.Message);
-					}
-					catch (Exception ex2)
-					{
-						logger.LogError("Could not recoved from FileSystemWatcher error! Reason: {reason}", ex2.Message);
-					}
-				}
-				finally
-				{
-					ReportDirectoryUpdated(directory.Name);
-				}
+				logger.LogError("{className} produced an error in directory `{directoryPath}`: {error}", nameof(FileSystemWatcher), directory.Path, e.Message);
 			};
 
-			watchers.Add(watcher);
+			watcherDisposables.Add(fs);
+			watcherDisposables.Add(watcher);
 		}
 	}
 
 	private void Watcher_onEvent(FileSystemEventArgs e, string directoryName)
 	{
-		if (e.Name is null || e.Name.EndsWith(".~") || Directory.Exists(e.FullPath))
+		if (e.Name is null || e.Name.EndsWith(HIDDEN_TEMP_FILE_EXT) || Directory.Exists(e.FullPath))
 			return;
 
 		ReportDirectoryUpdated(directoryName);
@@ -147,7 +127,7 @@ public sealed class DirectoryService : IDisposable
 			return [];
 
 		var files = Directory.EnumerateFiles(directory.Path);
-		var fileInfos = files.Select(x => new FileInfoModel
+		var fileInfos = files.Where(x => !x.EndsWith(HIDDEN_TEMP_FILE_EXT)).Select(x => new FileInfoModel
 		{
 			Name = Path.GetFileName(x),
 			LastModifiedTime = File.GetLastWriteTimeUtc(x)
@@ -203,15 +183,15 @@ public sealed class DirectoryService : IDisposable
 
 	public void Dispose()
 	{
-		eventToDispose?.Dispose();
 		DisposeWatchers();
+		eventToDispose?.Dispose();
 	}
 
 	private void DisposeWatchers()
 	{
-		foreach (var watcher in watchers)
-			watcher.Dispose();
+		foreach (var item in watcherDisposables)
+			item.Dispose();
 
-		watchers.Clear();
+		watcherDisposables.Clear();
 	}
 }
