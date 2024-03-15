@@ -245,7 +245,7 @@ public class Download : IDisposable
 		string extension = Path.GetExtension(fileName);
 		int tries = 1;
 
-		while (File.Exists(Path.Combine(directory, fileName)) || File.Exists(Path.Combine(directory, fileName + DirectoryService.HIDDEN_TEMP_FILE_EXTENSION)))
+		while (File.Exists(Path.Combine(directory, fileName)) || File.Exists(Path.Combine(directory, fileName + TEMP_EXTENSION)))
 		{
 			fileName = string.Format("{0} ({1}){2}", name, tries++, extension);
 		}
