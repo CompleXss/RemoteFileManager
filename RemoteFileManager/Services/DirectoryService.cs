@@ -38,11 +38,8 @@ public sealed class DirectoryService : IDisposable
 			logger.LogInformation("App settings changed. Reloading file system watchers.");
 			CreateWatchers(x.AllowedDirectories);
 
-			// TODO: report directories list changed
-
-			// tell client about changes
-			foreach (var dir in x.AllowedDirectories)
-				ReportDirectoryUpdated(dir.Name);
+			// tell clients to reload directories
+			hub.Clients.All.ShouldReloadDirectories();
 		}));
 	}
 

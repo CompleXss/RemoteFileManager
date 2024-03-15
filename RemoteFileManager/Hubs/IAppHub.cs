@@ -11,4 +11,5 @@ public interface IAppHub
 	Task DownloadResumed(string downloadID);
 	Task DownloadUpdated(string downloadID, long bytesDownloaded, long totalBytes, double speed);
 	Task DirectoryUpdated(string directoryName, DiskSpaceInfo diskSpace, IEnumerable<FileInfoModel> files);
+	Task ShouldReloadDirectories();
 }

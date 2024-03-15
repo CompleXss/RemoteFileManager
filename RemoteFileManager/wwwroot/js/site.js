@@ -137,6 +137,10 @@ function addEventListeners(connection) {
     connection.on('DownloadResumed', onDownloadResumed)
     connection.on('DownloadUpdated', updateDownloadInfo)
     connection.on('DirectoryUpdated', onDirectoryUpdated)
+    connection.on('ShouldReloadDirectories', () => {
+        reloadDownloadDirectories()
+        reloadFileManager()
+    })
 }
 
 function onConnected() {
