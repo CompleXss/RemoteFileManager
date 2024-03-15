@@ -22,12 +22,12 @@ body {
 
 
 /* scroll bar */
-::-webkit-scrollbar {
+.block > ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 
-::-webkit-scrollbar-thumb {
+.block > ::-webkit-scrollbar-thumb {
     border-radius: 10px;
     background-color: #bbb;
 }
