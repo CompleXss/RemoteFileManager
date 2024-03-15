@@ -8,6 +8,9 @@ namespace RemoteFileManager.Services;
 
 public class Download : IDisposable
 {
+	public const string TEMP_EXTENSION_REPLACEMENT = "._";
+	private const string TEMP_EXTENSION = DirectoryService.HIDDEN_TEMP_FILE_EXTENSION;
+
 	public string ID { get; }
 	public bool Done { get; private set; }
 	public bool Paused { get; private set; }
@@ -45,7 +48,7 @@ public class Download : IDisposable
 
 
 
-	public Download(IHttpClientFactory httpClientFactory, ILogger logger, int bufferSize = 81920)
+	public Download(IHttpClientFactory httpClientFactory, ILogger logger, int bufferSize = 4096)
 	{
 		this.httpClientFactory = httpClientFactory;
 		this.logger = logger;
@@ -70,11 +73,13 @@ public class Download : IDisposable
 		DirectoryName = directory.Name;
 		DirectoryPath = directory.Path;
 
+		HttpResponseMessage? response = null;
+
 		try
 		{
 			var token = cancellationTokenSource.Token;
 			var client = httpClientFactory.CreateClient(); // should NOT be disposed!
-			var response = await client.ReadResponseHeaders(uri, token);
+			response = await client.ReadResponseHeaders(uri, token);
 
 			if (!IsResponseHasFile(response, uri))
 				return false;
@@ -90,17 +95,16 @@ public class Download : IDisposable
 			}
 
 			// replace file extension if it's the same as temp extension
-			if (fileName.EndsWith(DirectoryService.HIDDEN_TEMP_FILE_EXTENSION))
+			if (fileName.EndsWith(TEMP_EXTENSION))
 			{
-				const string NEW_EXT = "._";
-				int extLength = DirectoryService.HIDDEN_TEMP_FILE_EXTENSION.Length;
-				fileName = fileName[..^extLength] + NEW_EXT; // replace temp extension with '._' extension to avoid confusion
+				int extLength = TEMP_EXTENSION.Length;
+				fileName = fileName[..^extLength] + TEMP_EXTENSION_REPLACEMENT; // replace temp extension with '._' extension to avoid confusion
 
-				logger.LogWarning("Name of the downloading file had prohibited extension ({oldExtension}). It was replaced with ({newExtension})", DirectoryService.HIDDEN_TEMP_FILE_EXTENSION, NEW_EXT);
+				logger.LogWarning("Name of the downloading file had prohibited extension ({oldExtension}). It was replaced with ({newExtension})", TEMP_EXTENSION, TEMP_EXTENSION_REPLACEMENT);
 			}
 
 			FileName = fileName = MakeFileNameUnique(directory.Path, fileName);
-			fileName += DirectoryService.HIDDEN_TEMP_FILE_EXTENSION; // add temp extension during download
+			fileName += TEMP_EXTENSION; // add temp extension during download
 
 
 
@@ -159,6 +163,8 @@ public class Download : IDisposable
 		}
 		catch (Exception e)
 		{
+			response?.Dispose();
+
 			logger.LogWarning("Could not start download with id {id}: {error}", ID, e.Message);
 			Ended?.Invoke(false);
 			return false;
