@@ -1,14 +1,21 @@
-# RemoteFileManager
-A web app that allows simple remote file management such as:
+# RemoteFileManager (WIP)
+A web app that allows simple remote file management on the host machine such as:
 - Downloading files from url
 - Deleting files in a directory
 - Seeing available and total disk space
+
+App uses SignalR for realtime server-client communication. Multiple clients can use this app at the same time without any problems.
+
+# Table of contents
+* [Installation](#installation)
+* [Configuration](#configuration)
+* [Usage]($usage)
 
 # Installation
 1. Make sure you have ``.NET 8`` installed.
 2. Clone repo ``git clone https://github.com/CompleXss/RemoteFileManager.git``
 3. ``cd RemoteFileManager`` (into the inner folder)
-4. Run one of the following:
+4. Run one of the following (or use Visual Studio instead):
 
 ```shell
 # To run in debug mode
@@ -21,7 +28,7 @@ dotnet run -c Release
 dotnet publish
 ```
 
-Note that you can run ``dotnet publish`` with [options](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish#options)
+Note that you can run ``dotnet publish`` with [options.](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish#options)
 
 For example:
 ```shell
@@ -36,7 +43,7 @@ dotnet publish -p:PublishSingleFile=true --self-contained=false -o my/folder
 
 After ``publish`` the app is ready to be used outside of this project folder
 
-# Configuring
+# Configuration
 To configure app, edit ``appsettings.json`` which looks like this:
 ```json
 {
@@ -79,3 +86,10 @@ To configure app, edit ``appsettings.json`` which looks like this:
 * All ``AllowedDirectories`` are locked when app is working so you can't delete/change them. If you remove directory from ``AllowedDirectories`` (when app is working) it will be unlocked.
 * Paths may be either absolute or relative
 * App is redirecting to ``https`` by default
+
+# Usage
+* Download: select directory, paste file link, specify file name (if you want to), hit ``Start download``
+* Delete: select directory, select file, hit ``Delete``, confirm
+* Disk space shows info for directory selected in block "Manage files"
+
+![ui.png](images/ui.png)
