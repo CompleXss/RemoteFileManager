@@ -3,9 +3,11 @@ var files = {}
 
 var connection = new signalR.HubConnectionBuilder()
     .withUrl('/hub')
-    .withAutomaticReconnect()
+    .withAutomaticReconnect([0, 2000, 2000, 2000, 2000])
     .configureLogging(signalR.LogLevel.None)
     .build()
+
+addEventListeners(connection)
 
 
 
@@ -51,6 +53,12 @@ function getActiveDownloads() {
 }
 
 // Get DOM elements
+function getConnectionStateElement() {
+    return document.getElementById('connectionState')
+}
+function getReconnectButtonElement() {
+    return document.getElementById('reconnect_button')
+}
 function getDownloadLinkElement() {
     return document.getElementById('downloadLink')
 }
@@ -72,12 +80,42 @@ function getEditDirectoriesElement() {
 function getFileToDeleteElement() {
     return document.getElementById('fileToDelete')
 }
+function showConnectionState(state, color = '') {
+    const element = getConnectionStateElement()
+    element.textContent = state
+    element.style.color = color
+}
+function showReconnectButton(value) {
+    getReconnectButtonElement().hidden = !value
+}
 
 
 
 // Connect
 function connect() {
+    connection.stop()
+    showConnectionState('connecting...')
+    showReconnectButton(false)
+
+    return connection.start()
+        .then(() => {
+            console.log('Successfully connected to server.')
+            onConnected()
+        })
+        .catch(e => {
+            showConnectionState('connection lost', 'red')
+            showReconnectButton(true)
+
+            console.log('Connection to server failed with error: ')
+            console.log(e)
+        })
+}
+
+function addEventListeners(connection) {
     connection.onreconnecting(() => {
+        showConnectionState('reconnecting...', 'orange')
+        showReconnectButton(true)
+
         console.log('Connection lost. Reconnecting...')
     })
 
@@ -87,33 +125,24 @@ function connect() {
     })
 
     connection.onclose(() => {
-        console.log('Connection closed. Reload page to connect again.')
+        showConnectionState('connection lost', 'red')
+        showReconnectButton(true)
+
+        console.log('Connection closed.')
     })
 
-    addEventListeners(connection)
-
-    connection.start()
-        .then(() => {
-            console.log('Successfully connected to server.')
-            onConnected()
-        })
-        .catch(e => {
-            console.log('Connection to server failed with error: ')
-            console.log(e)
-        })
-}
-
-function addEventListeners(connection) {
     connection.on('DownloadAdded', spawnDownloadElement)
     connection.on('DownloadRemoved', onDownloadRemoved)
     connection.on('DownloadPaused', onDownloadPaused)
     connection.on('DownloadResumed', onDownloadResumed)
     connection.on('DownloadUpdated', updateDownloadInfo)
     connection.on('DirectoryUpdated', onDirectoryUpdated)
-    //connection.on('DiskSpaceUpdated', updateDiskSpace)
 }
 
 function onConnected() {
+    showConnectionState('connected')
+    showReconnectButton(false)
+
     reloadDownloadDirectories()
     reloadFileManager()
     getActiveDownloads()
@@ -397,7 +426,6 @@ function onDirectoryUpdated(directoryName, diskSpaceInfo, filesInfo) {
 
 
 
-// TODO: deleteFile
 function deleteFile() {
     const directoryName = getEditDirectoriesElement()?.value
     const fileName = getFileToDeleteElement()?.value

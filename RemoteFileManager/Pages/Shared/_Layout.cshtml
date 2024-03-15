@@ -14,6 +14,8 @@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="myContainer">
                 <a class="navbar-brand" asp-area="" asp-page="/Index">RemoteFileManager</a>
+                <div id="connectionState" class="d-inline"></div>
+                <a id="reconnect_button" onclick="connect()" hidden> (try again) </a>
             </div>
         </nav>
     </header>

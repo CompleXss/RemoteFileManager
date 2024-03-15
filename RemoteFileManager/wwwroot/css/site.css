@@ -252,6 +252,11 @@ hr {
     margin: 5px 10%;
 }
 
+#reconnect_button {
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+}
 
 
 @media (max-width: 950px) {
