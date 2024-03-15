@@ -9,7 +9,7 @@ App uses SignalR for realtime server-client communication. Multiple clients can 
 # Table of contents
 * [Installation](#installation)
 * [Configuration](#configuration)
-* [Usage]($usage)
+* [Usage](#usage)
 
 # Installation
 1. Make sure you have ``.NET 8`` installed.
