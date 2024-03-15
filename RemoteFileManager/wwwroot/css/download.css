@@ -6,7 +6,9 @@
     text-align: start;
     font-size: 0.9em;
 
-    width: var(--download-width);
+    min-width: var(--min-download-width);
+    max-width: var(--download-width);
+    width: auto;
 
     margin: var(--download-margin);
     padding: 6px 10px;

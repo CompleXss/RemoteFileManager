@@ -4,6 +4,7 @@
     --background: white;
 
     --scrollbar-width: 6px;
+    --min-download-width: 200px;
     --download-width: 350px;
     --download-margin: 8px;
     --download-border-width: 1px;
@@ -55,6 +56,7 @@ button:active {
 select,
 input[type=text] {
     margin: 4px 0;
+    min-width: 100px;
 }
 
 select {
@@ -99,17 +101,30 @@ hr {
 
 
 .block {
-    width: calc(var(--download-width) + 2 * var(--download-margin) + 2 * var(--download-border-width) + var(--scrollbar-width));
     min-height: 150px;
     text-align: start;
-    margin: 10px;
+
+    /*margin: 10px;*/
+    margin-top: 18px;
+    margin-bottom: 18px;
+
     border-radius: 6px;
     border: 1px solid gray;
 }
 
+.block:has(.downloads_container) {
+    min-width: fit-content;
+    max-width: calc(var(--download-width) + 2 * var(--download-margin) + 2 * var(--download-border-width) + var(--scrollbar-width));
+    width: auto;
+   /* margin-left: auto;
+    margin-right: auto;*/
+}
+
 .downloads_container {
-    width: 100%;
-    max-height: 270px;
+    /*max-width: calc(var(--download-width) + 2 * var(--download-margin) + 2 * var(--download-border-width) + var(--scrollbar-width));*/
+    /*width: 100%;*/
+    /*max-height: 270px;*/
+    height: 270px;
     overflow-y: scroll;
 }
 
@@ -129,6 +144,7 @@ hr {
 
 .block_container label {
     width: 180px;
+    flex-shrink: 0;
 }
 
 /*.block_container > button {
@@ -159,10 +175,10 @@ hr {
 
 
 
-#manage_files_block,
+/*#manage_files_block,
 #start_download_block {
     width: 400px;
-}
+}*/
 
 
 
@@ -173,6 +189,7 @@ hr {
 .disk_space_container {
     padding: 8px 12px;
     margin-top: 8px;
+    margin-bottom: 8px;
     border-radius: 6px;
     background-color: #eee;
     border: 1px solid lightgray;
@@ -206,8 +223,57 @@ hr {
 
 
 
+.grid {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+}
+
+.column {
+    min-width: 370px;
+}
+
+.column:first-of-type {
+    flex-grow: 1;
+}
+
+/* TODO: fix horizontal scaling */
+.column:last-of-type {
+    min-width: fit-content;
+    width: calc(16px + 21px + var(--download-width) + 2 * var(--download-margin) + 2 * var(--download-border-width) + var(--scrollbar-width));
+
+    border-left: 1px solid gray;
+    padding-left: 32px;
+}
 
 
 
-@media (min-width: 768px) {
+.myContainer {
+    margin: 5px 10%;
+}
+
+
+
+@media (max-width: 950px) {
+    .cont {
+        margin-left: 5%;
+        margin-right: 5%;
+    }
+
+    .grid {
+        flex-direction: column;
+    }
+
+    .column:last-of-type {
+        width: 100%;
+        min-width: 370px;
+
+        border-left: none;
+        padding-left: 0;
+    }
+
+    .column:last-of-type .block {
+        margin-left: auto;
+        margin-right: auto;
+    }
 }
