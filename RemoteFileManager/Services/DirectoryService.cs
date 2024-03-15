@@ -11,7 +11,7 @@ public sealed class DirectoryService : IDisposable
 {
 	public const string HIDDEN_TEMP_FILE_EXTENSION = ".~";
 
-	public IOptionsMonitor<DirectoryOptions> Options { get; }
+	private readonly IOptionsMonitor<DirectoryOptions> options;
 	private readonly IHubContext<AppHub, IAppHub> hub;
 	private readonly ILogger<DirectoryService> logger;
 	private readonly FileLogger fileLogger;
@@ -20,7 +20,7 @@ public sealed class DirectoryService : IDisposable
 
 	public DirectoryService(IOptionsMonitor<DirectoryOptions> options, IHubContext<AppHub, IAppHub> hub, ILogger<DirectoryService> logger, FileLogger fileLogger)
 	{
-		this.Options = options;
+		this.options = options;
 		this.hub = hub;
 		this.logger = logger;
 		this.fileLogger = fileLogger;
@@ -110,13 +110,13 @@ public sealed class DirectoryService : IDisposable
 
 	#region Get directories
 	public DirectoryModel[] GetAllAllowedDirectories()
-		=> Options.CurrentValue.AllowedDirectories;
+		=> options.CurrentValue.AllowedDirectories;
 
 	public IEnumerable<DirectoryModel> GetDownloadAllowedDirectories()
-		=> Options.CurrentValue.AllowedDirectories.Where(x => x.CreateAllowed);
+		=> GetAllAllowedDirectories().Where(x => x.CreateAllowed);
 
 	public DirectoryModel? GetAllowedDirectoryInfoByName(string name)
-		=> Options.CurrentValue.AllowedDirectories.FirstOrDefault(x => x.Name == name);
+		=> GetAllAllowedDirectories().FirstOrDefault(x => x.Name == name);
 	#endregion
 
 
@@ -133,7 +133,7 @@ public sealed class DirectoryService : IDisposable
 		if (!Directory.Exists(directory?.Path) || !directory.EditAllowed)
 			return [];
 
-		var files = Directory.EnumerateFiles(directory.Path);
+		var files = Directory.EnumerateFiles(directory.Path).Order();
 		var fileInfos = files.Where(x => !x.EndsWith(HIDDEN_TEMP_FILE_EXTENSION)).Select(x => new FileInfoModel
 		{
 			Name = Path.GetFileName(x),
