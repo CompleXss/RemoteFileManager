@@ -113,25 +113,26 @@ public class Download : IDisposable
 			// Fire and forget
 			_ = Task.Run(async () =>
 			{
-				string filePath = directory.Path + fileName;
+				string tempFilePath = Path.Combine(directory.Path, fileName);
+				string finalFilePath = Path.Combine(directory.Path, this.FileName);
 
 				try
 				{
 					if (!Directory.Exists(directory.Path))
 						Directory.CreateDirectory(directory.Path);
 
-					await DownloadFromResponse(response, filePath, token);
+					await DownloadFromResponse(response, tempFilePath, token);
 
 					// rename back to normal extension
-					if (!TryMoveFile(filePath, directory.Path + FileName, LogLevel.Information))
+					if (!TryMoveFile(tempFilePath, finalFilePath, LogLevel.Information))
 					{
 						// try add (1) to file end
 						FileName = MakeFileNameUnique(directory.Path, FileName);
-						logger.LogInformation("Trying to rename file from '{from}' to '{to}'", filePath, directory.Path + FileName);
+						logger.LogInformation("Trying to rename file from '{from}' to '{to}'", tempFilePath, finalFilePath);
 
-						if (!TryMoveFile(filePath, directory.Path + FileName, LogLevel.Error))
+						if (!TryMoveFile(tempFilePath, finalFilePath, LogLevel.Error))
 						{
-							TryDeleteFile(filePath); // if still could not move
+							TryDeleteFile(tempFilePath); // if still could not move
 						}
 					}
 
@@ -139,13 +140,13 @@ public class Download : IDisposable
 				}
 				catch (OperationCanceledException)
 				{
-					TryDeleteFile(filePath);
+					TryDeleteFile(tempFilePath);
 					Ended?.Invoke(false);
 				}
 				catch (Exception e)
 				{
 					logger.LogError("There was an error during download with id {id}: {error}", ID, e.Message);
-					TryDeleteFile(filePath);
+					TryDeleteFile(tempFilePath);
 					Ended?.Invoke(false);
 				}
 				finally
