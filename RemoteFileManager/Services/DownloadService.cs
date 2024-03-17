@@ -4,16 +4,25 @@ using RemoteFileManager.Hubs;
 
 namespace RemoteFileManager.Services;
 
-public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService directoryService, IHttpClientFactory httpClientFactory, ILogger<DownloadService> logger, FileLogger fileLogger)
+public sealed class DownloadService : IDisposable
 {
 	private const int REPORT_PROGRESS_DELAY_MS = 500;
 
 	public List<Download> ActiveDownloads { get; } = new(16);
-	private readonly IHubContext<AppHub, IAppHub> hub = hub;
-	private readonly DirectoryService directoryService = directoryService;
-	private readonly IHttpClientFactory httpClientFactory = httpClientFactory;
-	private readonly ILogger<DownloadService> logger = logger;
-	private readonly FileLogger fileLogger = fileLogger;
+	private readonly IHubContext<AppHub, IAppHub> hub;
+	private readonly DirectoryService directoryService;
+	private readonly IHttpClientFactory httpClientFactory;
+	private readonly ILogger<DownloadService> logger;
+	private readonly FileLogger fileLogger;
+
+	public DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService directoryService, IHttpClientFactory httpClientFactory, ILogger<DownloadService> logger, FileLogger fileLogger)
+	{
+		this.hub = hub;
+		this.directoryService = directoryService;
+		this.httpClientFactory = httpClientFactory;
+		this.logger = logger;
+		this.fileLogger = fileLogger;
+	}
 
 
 
@@ -137,5 +146,15 @@ public class DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService 
 	public Download? FindDownloadByID(string downloadID)
 	{
 		return ActiveDownloads.FirstOrDefault(x => x.ID == downloadID);
+	}
+
+
+
+	public void Dispose()
+	{
+		foreach (var download in ActiveDownloads)
+			download.Dispose();
+
+		ActiveDownloads.Clear();
 	}
 }
