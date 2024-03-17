@@ -53,33 +53,16 @@ function getActiveDownloads() {
 }
 
 // Get DOM elements
-function getConnectionStateElement() {
-    return document.getElementById('connectionState')
-}
-function getReconnectButtonElement() {
-    return document.getElementById('reconnect_button')
-}
-function getDownloadLinkElement() {
-    return document.getElementById('downloadLink')
-}
-function getDownloadDirectoriesElement() {
-    return document.getElementById('downloadDirectories')
-}
-function getDownloadFileNameElement() {
-    return document.getElementById('downloadFileName')
-}
-function getActiveDownloadsElement() {
-    return document.getElementById('activeDownloads')
-}
-function getCompletedDownloadsElement() {
-    return document.getElementById('completedDownloads')
-}
-function getEditDirectoriesElement() {
-    return document.getElementById('editDirectories')
-}
-function getFileToDeleteElement() {
-    return document.getElementById('fileToDelete')
-}
+function getConnectionStateElement() { return document.getElementById('connectionState') }
+function getReconnectButtonElement() { return document.getElementById('reconnect_button') }
+function getDownloadLinkElement() { return document.getElementById('downloadLink') }
+function getDownloadDirectoriesElement() { return document.getElementById('downloadDirectories') }
+function getDownloadFileNameElement() { return document.getElementById('downloadFileName') }
+function getActiveDownloadsElement() { return document.getElementById('activeDownloads') }
+function getCompletedDownloadsElement() { return document.getElementById('completedDownloads') }
+function getEditDirectoriesElement() { return document.getElementById('editDirectories') }
+function getFileToDeleteElement() { return document.getElementById('fileToDelete') }
+
 function showConnectionState(state, color = '') {
     const element = getConnectionStateElement()
     element.textContent = state

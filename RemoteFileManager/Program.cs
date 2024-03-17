@@ -11,7 +11,6 @@ builder.Services.Configure<DirectoryOptions>(builder.Configuration.GetSection(Di
 builder.Services.AddSingleton<DirectoryService>();
 builder.Services.AddSingleton<DownloadService>();
 
-
 string? logFilePath = builder.Configuration.GetValue<string>("Directories:FilesChangesLogFile");
 builder.Logging.Services.AddSingleton(x => new FileLogger(logFilePath));
 
@@ -19,7 +18,6 @@ builder.Logging.Services.AddSingleton(x => new FileLogger(logFilePath));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
 	app.UseDeveloperExceptionPage();
