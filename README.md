@@ -12,10 +12,20 @@ App uses SignalR for realtime server-client communication. Multiple clients can 
 * [Usage](#usage)
 
 # Installation
-1. Make sure you have ``.NET 8`` installed.
-2. Clone repo ``git clone https://github.com/CompleXss/RemoteFileManager.git``
-3. ``cd RemoteFileManager`` (into the inner folder)
-4. Run one of the following (or use Visual Studio instead):
+* Make sure you have ``.NET 8 sdk`` installed
+* Clone repo ``git clone https://github.com/CompleXss/RemoteFileManager.git``
+* To build framework-dependent app (executable size is ~200 KB), run:
+  + ``build.bat`` on Windows
+  + ``build.sh`` on Linux
+* To build framework-independent app (executable size is ~100 MB), run:
+  + ``build_self_contained.bat`` on Windows
+  + ``build_self_contained.sh`` on Linux
+
+***
+
+If you want to just run the app and not publish it:
+1. ``cd RemoteFileManager`` (into the inner folder)
+2. Run one of the following (or use your IDE instead):
 
 ```shell
 # To run in debug mode
@@ -23,25 +33,10 @@ dotnet run
 
 # To run in release mode
 dotnet run -c Release
-
-# To publish (production mode)
-dotnet publish
 ```
 
-Note that you can run ``dotnet publish`` with [options.](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish#options)
-
-For example:
-```shell
-dotnet publish -p:PublishSingleFile=true --self-contained=false -o my/folder
-
-# Where:
-# -p:PublishSingleFile=true  - builds into single file
-# --self-contained=false     - makes an app dependent on .NET runtime (executable size is ~200 KB)
-# --self-contained=true      - bundles .NET runtime into an executable (size is ~100 MB)
-# -o my/folder               - specifies output folder
-```
-
-After ``publish`` the app is ready to be used outside of this project folder
+Also you can run ``dotnet publish`` with [options](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish#options) manually if you want to customize build behaviour.<br/>
+After using build scripts or ``dotnet publish`` the app is ready to be used outside of this project folder.
 
 # Configuration
 To configure app, edit ``appsettings.json`` which looks like this:
@@ -82,8 +77,8 @@ To configure app, edit ``appsettings.json`` which looks like this:
 4. ``AllowedHosts`` - who can connect to the app. * (star) means everyone
 
 ### Note the following
-* ``Directories`` section supports hot reload. You can change this section when app is working.
-* All ``AllowedDirectories`` are locked when app is working so you can't delete/change them. If you remove directory from ``AllowedDirectories`` (when app is working) it will be unlocked.
+* ``Directories`` section supports hot reload. You can change this section while app is running
+* All ``AllowedDirectories`` are locked when app is running so you can't delete/change them. If you remove directory from ``AllowedDirectories`` (when app is working) it will be unlocked
 * Paths may be either absolute or relative
 * App is redirecting to ``https`` by default
 
