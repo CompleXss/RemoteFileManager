@@ -1,4 +1,7 @@
 # RemoteFileManager (WIP)
+App is stable but will be updated in the near future.
+***
+
 A web app that allows simple remote file management on the host machine such as:
 - Downloading files from url
 - Deleting files in a directory
