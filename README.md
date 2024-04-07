@@ -1,4 +1,4 @@
-# RemoteFileManager (WIP)
+# RemoteFileManager
 App is stable but will be updated in the near future.
 ***
 
