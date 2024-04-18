@@ -2,6 +2,7 @@
 
 public class FileLogger(string? filePath) : ILogger
 {
+	public const string DATE_TIME_FORMAT = "dd.MM.yyyy HH:mm:ss";
 	private readonly string? filePath = filePath;
 	private static readonly object lockObject = new();
 
@@ -24,7 +25,8 @@ public class FileLogger(string? filePath) : ILogger
 				if (!string.IsNullOrWhiteSpace(directory))
 					Directory.CreateDirectory(directory);
 
-				File.AppendAllText(filePath, "[" + DateTime.Now.ToString() + "] - " + logLevel.ToString() + ": " + formatter(state, exception) + n + exc);
+				string message = $"[{DateTime.Now.ToString(DATE_TIME_FORMAT)}] [{logLevel}]: " + formatter(state, exception) + n + exc;
+				File.AppendAllText(filePath, message);
 			}
 			catch (Exception)
 			{
