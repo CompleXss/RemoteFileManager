@@ -11,21 +11,22 @@ public class FileLogger(string? filePath) : ILogger
 		if (filePath is null || formatter is null)
 			return;
 
+		var n = Environment.NewLine;
+		string exc = "";
+
+		if (exception is not null)
+			exc = n + exception.GetType() + ": " + exception.Message + n + exception.StackTrace + n;
+
+		string message = $"[{DateTime.Now.ToString(DATE_TIME_FORMAT)}] [{logLevel}]: " + formatter(state, exception) + n + exc;
+
 		lock (lockObject)
 		{
-			var n = Environment.NewLine;
-			string exc = "";
-
-			if (exception is not null)
-				exc = n + exception.GetType() + ": " + exception.Message + n + exception.StackTrace + n;
-
 			try
 			{
 				var directory = Path.GetDirectoryName(filePath);
 				if (!string.IsNullOrWhiteSpace(directory))
 					Directory.CreateDirectory(directory);
 
-				string message = $"[{DateTime.Now.ToString(DATE_TIME_FORMAT)}] [{logLevel}]: " + formatter(state, exception) + n + exc;
 				File.AppendAllText(filePath, message);
 			}
 			catch (Exception)
