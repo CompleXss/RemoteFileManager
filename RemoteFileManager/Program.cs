@@ -2,7 +2,9 @@ using RemoteFileManager.Configuration;
 using RemoteFileManager.Hubs;
 using RemoteFileManager.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
+builder.WebHost.UseKestrelHttpsConfiguration();
+
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
