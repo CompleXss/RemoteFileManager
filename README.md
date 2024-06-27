@@ -83,7 +83,6 @@ To configure app, edit ``appsettings.json`` which looks like this:
 * ``Directories`` section supports hot reload. You can change this section while app is running
 * All ``AllowedDirectories`` are locked when app is running so you can't delete/change them. If you remove directory from ``AllowedDirectories`` (when app is working) it will be unlocked
 * Paths may be either absolute or relative
-* App is redirecting to ``https`` by default
 
 # Usage
 * Download: select directory, paste file link, specify file name (if you want to), hit ``Start download``
