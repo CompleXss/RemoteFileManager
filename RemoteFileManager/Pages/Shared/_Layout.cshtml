@@ -28,8 +28,11 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" type="module"></script>
+    <script src="~/js/site.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/connectionApiCaller.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/exportGlobals.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/formatters.js" type="module" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -1,7 +1,10 @@
-﻿var diskSpaces = {}
+﻿import { getDownloadProgressString, getFileSizeString, getTimeRemainingString } from './formatters.js'
+import { ConnectionApiCaller } from './connectionApiCaller.js'
+
+var diskSpaces = {}
 var files = {}
 
-var connection = new signalR.HubConnectionBuilder()
+const connection = new signalR.HubConnectionBuilder()
     .withUrl('/hub')
     .withAutomaticReconnect([0, 2000, 2000, 2000, 2000])
     .configureLogging(signalR.LogLevel.None)
@@ -9,32 +12,49 @@ var connection = new signalR.HubConnectionBuilder()
 
 addEventListeners(connection)
 
+const api = new ConnectionApiCaller(connection)
 
 
-// Api calls
-function startDownloadRequest(downloadLink, directoryName, fileName) {
-    return connection.invoke('StartDownload', downloadLink, directoryName, fileName)
+
+/**
+ * Attempts to get an element by id.
+ * If element does not exist, prints error to console and returns undefined.
+ * @param {string} elementId
+ * @return {HTMLelement | undefined}
+ */
+function getElementById(elementId) {
+    const element = document.getElementById(elementId)
+
+    if (!element) {
+        console.error(`Could not find element with id '${elementId}'`)
+        return undefined
+    }
+
+    return element
 }
-function cancelDownloadRequest(id) {
-    return connection.invoke('CancelDownload', id)
+
+// Get DOM elements
+function getConnectionStateElement() { return getElementById('connectionState') }
+function getReconnectButtonElement() { return getElementById('reconnect_button') }
+function getDownloadLinkElement() { return getElementById('downloadLink') }
+function getDownloadDirectoriesElement() { return getElementById('downloadDirectories') }
+function getDownloadFileNameElement() { return getElementById('downloadFileName') }
+function getActiveDownloadsElement() { return getElementById('activeDownloads') }
+function getCompletedDownloadsElement() { return getElementById('completedDownloads') }
+function getEditDirectoriesElement() { return getElementById('editDirectories') }
+function getFileToDeleteElement() { return getElementById('fileToDelete') }
+
+function showConnectionState(state, color = '') {
+    const element = getConnectionStateElement()
+    element.textContent = state
+    element.style.color = color
 }
-function pauseDownloadRequest(id) {
-    return connection.invoke('PauseDownload', id)
+function showReconnectButton(value) {
+    getReconnectButtonElement().hidden = !value
 }
-function resumeDownloadRequest(id) {
-    return connection.invoke('ResumeDownload', id)
-}
-function deleteFileRequest(directoryName, fileName) {
-    return connection.invoke('DeleteFile', directoryName, fileName)
-}
-function getDownloadAllowedDirectoryNamesRequest() {
-    return connection.invoke('GetDownloadAllowedDirectoryNames')
-}
-function getAllowedDirectoryInfosRequest() {
-    return connection.invoke('GetAllowedDirectoryInfos')
-}
-function getActiveDownloads() {
-    return connection.invoke('GetActiveDownloads')
+
+export function getActiveDownloads() {
+    api.getActiveDownloadsRequest()
         .then(downloads => {
             const activeDownloads = document.getElementById('activeDownloads')
             if (!activeDownloads) {
@@ -52,30 +72,10 @@ function getActiveDownloads() {
         })
 }
 
-// Get DOM elements
-function getConnectionStateElement() { return document.getElementById('connectionState') }
-function getReconnectButtonElement() { return document.getElementById('reconnect_button') }
-function getDownloadLinkElement() { return document.getElementById('downloadLink') }
-function getDownloadDirectoriesElement() { return document.getElementById('downloadDirectories') }
-function getDownloadFileNameElement() { return document.getElementById('downloadFileName') }
-function getActiveDownloadsElement() { return document.getElementById('activeDownloads') }
-function getCompletedDownloadsElement() { return document.getElementById('completedDownloads') }
-function getEditDirectoriesElement() { return document.getElementById('editDirectories') }
-function getFileToDeleteElement() { return document.getElementById('fileToDelete') }
-
-function showConnectionState(state, color = '') {
-    const element = getConnectionStateElement()
-    element.textContent = state
-    element.style.color = color
-}
-function showReconnectButton(value) {
-    getReconnectButtonElement().hidden = !value
-}
-
 
 
 // Connect
-function connect() {
+export function connect() {
     connection.stop()
     showConnectionState('connecting...')
     showReconnectButton(false)
@@ -138,7 +138,7 @@ function onConnected() {
 
 
 // Download
-function startDownload() {
+export function startDownload() {
     if (!connection) return
 
     // get download link
@@ -156,14 +156,13 @@ function startDownload() {
     const fileName = getDownloadFileNameElement()?.value
 
     // request download
-    startDownloadRequest(downloadLink, directoryName, fileName)
+    api.startDownloadRequest(downloadLink, directoryName, fileName)
 }
 
 function spawnDownloadElement(info, list) {
     if (!list) {
         list = getActiveDownloadsElement()
         if (!list) {
-            logElementNotFoundError('activeDownloads')
             return
         }
     }
@@ -198,17 +197,17 @@ function spawnDownloadElement(info, list) {
     // cancel button
     const cancelButton = document.createElement('button')
     cancelButton.className = 'cancel_button'
-    cancelButton.onclick = () => cancelDownloadRequest(info.id)
+    cancelButton.onclick = () => api.cancelDownloadRequest(info.id)
 
     // pause-resume button
     const pauseButton = document.createElement('button')
     if (info.paused) {
         pauseButton.className = 'resume_button'
-        pauseButton.onclick = () => resumeDownloadRequest(info.id)
+        pauseButton.onclick = () => api.resumeDownloadRequest(info.id)
     }
     else {
         pauseButton.className = 'pause_button'
-        pauseButton.onclick = () => pauseDownloadRequest(info.id)
+        pauseButton.onclick = () => api.pauseDownloadRequest(info.id)
     }
 
     // wrappers
@@ -257,10 +256,7 @@ function updateDownloadInfo(downloadID, bytesDownloaded, totalBytes, speed, down
 
 function onDownloadRemoved(downloadID, completed) {
     const completedDownloads = getCompletedDownloadsElement()
-    if (!completedDownloads) {
-        logElementNotFoundError('completedDownloads')
-        return
-    }
+    if (!completedDownloads) return
 
     const download = document.getElementById(downloadID)
     if (!download) return
@@ -289,7 +285,7 @@ function onDownloadPaused(downloadID) {
     // btn: pause --> resume
     const btn = download.querySelector('.pause_button')
     btn.className = 'resume_button'
-    btn.onclick = () => resumeDownloadRequest(downloadID)
+    btn.onclick = () => api.resumeDownloadRequest(downloadID)
 }
 
 function onDownloadResumed(downloadID) {
@@ -299,19 +295,19 @@ function onDownloadResumed(downloadID) {
     // btn: resume --> pause
     const btn = download.querySelector('.resume_button')
     btn.className = 'pause_button'
-    btn.onclick = () => pauseDownloadRequest(downloadID)
+    btn.onclick = () => api.pauseDownloadRequest(downloadID)
 }
 
 
 
 // Directories
-function reloadDownloadDirectories() {
+export function reloadDownloadDirectories() {
     if (!connection) return
 
     const select = getDownloadDirectoriesElement()
     select.disabled = true
 
-    return getDownloadAllowedDirectoryNamesRequest()
+    return api.getDownloadAllowedDirectoryNamesRequest()
         .then(directoryNames => {
             const options = directoryNames.map(createOptionElement)
 
@@ -349,7 +345,7 @@ function showDiskSpace(directoryName) {
         getFileSizeString(diskSpace.total)
 }
 
-function editDirectoryOnChange(directoryName) {
+export function editDirectoryOnChange(directoryName) {
     if (!directoryName) return
 
     showDiskSpace(directoryName)
@@ -359,13 +355,13 @@ function editDirectoryOnChange(directoryName) {
 
 
 // File management
-function reloadFileManager() {
+export function reloadFileManager() {
     const select = getEditDirectoriesElement()
     select.disabled = true
 
     getFileToDeleteElement().disabled = true
-
-    return getAllowedDirectoryInfosRequest()
+    
+    return api.getAllowedDirectoryInfosRequest()
         .then(infos => {
             if (!infos) return
 
@@ -375,7 +371,7 @@ function reloadFileManager() {
             select.disabled = options.length === 0
 
             // load diskSpaces & files
-            for (info of infos) {
+            for (const info of infos) {
                 diskSpaces[info.directoryName] = info.diskSpaceInfo
                 files[info.directoryName] = info.files
             }
@@ -413,137 +409,30 @@ function onDirectoryUpdated(directoryName, diskSpaceInfo, filesInfo) {
 
 
 
-function deleteFile() {
+export function deleteFile() {
     const directoryName = getEditDirectoriesElement()?.value
     const fileName = getFileToDeleteElement()?.value
 
     if (!directoryName || !fileName || directoryName == '' || fileName == '') return
 
     if (confirm(`Are you sure you want to DELETE the file '${fileName}' from '${directoryName}'?`)) {
-        deleteFileRequest(directoryName, fileName)
+        api.deleteFileRequest(directoryName, fileName)
     }
 }
 
 
 
 // Other
-function clearCompletedDownloads() {
+export function clearCompletedDownloads() {
     const list = getCompletedDownloadsElement()
-    if (!list) {
-        logElementNotFoundError(list)
-        return
-    }
+    if (!list) return
 
     list.textContent = ''
 }
 
 
 
+// todo remove
+function logElementNotFoundError() {
 
-
-// Formatters
-function getFileSizeString(value) {
-    const kiloByte = 1024
-    const megaByte = kiloByte * 1024
-    const gigaByte = megaByte * 1024
-    const teraByte = gigaByte * 1024
-
-    if (value > teraByte)
-        return format(value / teraByte) + ' TB'
-
-    if (value > gigaByte)
-        return format(value / gigaByte) + ' GB'
-
-    if (value > megaByte)
-        return format(value / megaByte) + ' MB'
-
-    if (value > kiloByte)
-        return format(value / kiloByte) + ' KB'
-
-    return format(value) + ' B'
-
-
-
-    function format(value) {
-        return value >= 100
-            ? Math.floor(value).toFixed(0)
-            : (Math.floor(value * 10) / 10).toFixed(1)
-    }
-}
-
-function getDownloadProgressString(downloaded, total) {
-    const kiloByte = 1024
-    const megaByte = kiloByte * 1024
-    const gigaByte = megaByte * 1024
-    const teraByte = gigaByte * 1024
-
-    if (total > teraByte)
-        return format(downloaded / teraByte) + '/' + format(total / teraByte) + ' TB'
-
-    if (total > gigaByte)
-        return format(downloaded / gigaByte) + '/' + format(total / gigaByte) + ' GB'
-
-    if (total > megaByte)
-        return format(downloaded / megaByte) + '/' + format(total / megaByte) + ' MB'
-
-    if (total > kiloByte)
-        return format(downloaded / kiloByte) + '/' + format(total / kiloByte) + ' KB'
-
-    return downloaded.toFixed(0) + '/' + total.toFixed(0) + ' B'
-
-
-
-    function format(value) {
-        return value > 100
-            ? (value).toFixed(0)
-            : (value).toFixed(1)
-    }
-}
-
-function getTimeRemainingString(value) {
-    const min = 60
-    const hour = min * 60
-    const day = hour * 24
-    const week = day * 7
-    const month = week * 4
-    const year = month * 12
-    const inf = year * 10
-
-    if (value > inf)
-        return 'inf.'
-
-    if (value > year)
-        return format(value / year) + ' y.'
-
-    if (value > month)
-        return format(value / month) + ' m.'
-
-    if (value > week)
-        return format(value / week) + ' w.'
-
-    if (value > day)
-        return format(value / day) + ' d.'
-
-    if (value > hour)
-        return format(value / hour) + ' h.'
-
-    if (value > min)
-        return format(value / min) + ' min.'
-
-    return value.toFixed(1) + ' sec.'
-
-
-
-    function format(value) {
-        return value > 100
-            ? value.toFixed(0)
-            : value.toFixed(1)
-    }
-}
-
-
-
-// TODO: get rid of logElementNotFoundError?
-function logElementNotFoundError(elementName) {
-    console.error(`Can not find "${elementName}" element!`)
 }
