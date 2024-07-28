@@ -75,12 +75,12 @@ export function getActiveDownloads() {
 
 
 // Connect
-export function connect() {
-    connection.stop()
+export async function connect() {
+    await connection.stop()
     showConnectionState('connecting...')
     showReconnectButton(false)
 
-    return connection.start()
+    return await connection.start()
         .then(() => {
             console.log('Successfully connected to server.')
             onConnected()
@@ -360,7 +360,7 @@ export function reloadFileManager() {
     select.disabled = true
 
     getFileToDeleteElement().disabled = true
-    
+
     return api.getAllowedDirectoryInfosRequest()
         .then(infos => {
             if (!infos) return
