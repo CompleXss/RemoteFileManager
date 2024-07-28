@@ -6,16 +6,21 @@ namespace RemoteFileManager.Services;
 
 public sealed class DownloadService : IDisposable
 {
-	private const int REPORT_PROGRESS_DELAY_MS = 500;
+	private const int REPORT_PROGRESS_DELAY_MS = 500; // todo: extract to options
 
-	public List<Download> ActiveDownloads { get; } = new(16);
+	public List<Download> ActiveDownloads { get; } = new(16); // todo: make it thread safe
 	private readonly IHubContext<AppHub, IAppHub> hub;
 	private readonly DirectoryService directoryService;
 	private readonly IHttpClientFactory httpClientFactory;
 	private readonly ILogger<DownloadService> logger;
 	private readonly FileLogger fileLogger;
 
-	public DownloadService(IHubContext<AppHub, IAppHub> hub, DirectoryService directoryService, IHttpClientFactory httpClientFactory, ILogger<DownloadService> logger, FileLogger fileLogger)
+	public DownloadService(
+		IHubContext<AppHub, IAppHub> hub,
+		DirectoryService directoryService,
+		IHttpClientFactory httpClientFactory,
+		ILogger<DownloadService> logger,
+		FileLogger fileLogger)
 	{
 		this.hub = hub;
 		this.directoryService = directoryService;
