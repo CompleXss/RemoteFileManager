@@ -9,11 +9,16 @@ builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
 
-builder.Services.Configure<DirectoryOptions>(builder.Configuration.GetSection(DirectoryOptions.SECTION_NAME));
 builder.Services.AddSingleton<DirectoryService>();
 builder.Services.AddSingleton<DownloadService>();
+builder.Services
+	.AddOptions<DirectoryOptions>()
+	.Bind(builder.Configuration.GetSection(DirectoryOptions.SECTION_KEY))
+	.ValidateDataAnnotations()
+	.ValidateOnStart();
 
-string? logFilePath = builder.Configuration.GetValue<string>("Directories:FilesChangesLogFile");
+string logFilePathConfigurationPath = $"{DirectoryOptions.SECTION_KEY}:{nameof(DirectoryOptions.FilesChangesLogFile)}";
+string? logFilePath = builder.Configuration.GetValue<string>(logFilePathConfigurationPath);
 builder.Logging.Services.AddSingleton(x => new FileLogger(logFilePath));
 
 
@@ -44,9 +49,7 @@ app.Use(async (context, next) =>
 
 //app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-//app.UseAuthorization();
 
 app.MapHub<AppHub>("/hub");
 app.MapRazorPages();

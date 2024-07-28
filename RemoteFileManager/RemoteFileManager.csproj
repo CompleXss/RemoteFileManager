@@ -5,15 +5,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <DebugSymbols>False</DebugSymbols>
     <DebugType>None</DebugType>
   </PropertyGroup>
-  
+
   <ItemGroup Condition="'$(Configuration)'=='Release'">
     <Content Update="appsettings.*.json" CopyToPublishDirectory="Never" />
     <Content Update="libman.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
-  
+
 </Project>
