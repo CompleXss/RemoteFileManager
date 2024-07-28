@@ -8,6 +8,8 @@
     --download-width: 350px;
     --download-margin: 8px;
     --download-border-width: 1px;
+    --block-padding-vertical: 8px;
+    --block-padding-horizontal: 15px;
 }
 
 html {
@@ -133,7 +135,7 @@ hr {
 .block_container {
     display: flex;
     flex-direction: column;
-    padding: 8px 15px;
+    padding: var(--block-padding-vertical) var(--block-padding-horizontal);
     width: 100%;
 }
 
