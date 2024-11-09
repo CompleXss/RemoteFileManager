@@ -201,6 +201,7 @@ public class Download : IDisposable
 		using var destination = new FileStream(filePath, FileMode.Create, FileAccess.Write);
 
 		var buffer = new byte[bufferSize];
+		var pauseBuffer = new byte[1];
 		int bytesRead;
 
 		while ((bytesRead = await source.ReadAsync(buffer, token)) != 0)
@@ -209,7 +210,10 @@ public class Download : IDisposable
 			BytesDownloaded += bytesRead;
 
 			while (Paused)
+			{
 				await Task.Delay(1000, token);
+				_ = await source.ReadAsync(pauseBuffer, token);
+			}
 		}
 
 		Done = true;
