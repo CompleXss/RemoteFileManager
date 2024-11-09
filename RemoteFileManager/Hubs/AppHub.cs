@@ -5,17 +5,21 @@ using RemoteFileManager.Services;
 
 namespace RemoteFileManager.Hubs;
 
-public class AppHub(DownloadService downloadService, DirectoryService directoryService, ILogger<AppHub> logger) : Hub<IAppHub>
+public class AppHub : Hub<IAppHub>
 {
-	private readonly DownloadService downloadService = downloadService;
-	private readonly DirectoryService directoryService = directoryService;
-	private readonly ILogger<AppHub> logger = logger;
+	private readonly DownloadService downloadService;
+	private readonly DirectoryService directoryService;
+	private readonly ILogger<AppHub> logger;
+
+	public AppHub(DownloadService downloadService, DirectoryService directoryService, ILogger<AppHub> logger)
+	{
+		this.downloadService = downloadService;
+		this.directoryService = directoryService;
+		this.logger = logger;
+	}
 
 	public async Task<bool> StartDownload(string url, string directoryName, string? fileName = null)
 	{
-		if (url is null)
-			return false;
-
 		try
 		{
 			var uri = new Uri(url);
@@ -28,42 +32,44 @@ public class AppHub(DownloadService downloadService, DirectoryService directoryS
 		}
 	}
 
-	public bool CancelDownload(string downloadID)
+	public bool CancelDownload(string downloadId)
 	{
-		bool cancelled = downloadService.CancelDownload(downloadID);
+		var cancelled = downloadService.CancelDownload(downloadId);
 
 		if (cancelled)
-			Clients.All.DownloadRemoved(downloadID, completed: false);
+			Clients.All.DownloadRemoved(downloadId, completed: false);
 
 		return cancelled;
 	}
 
-	public bool PauseDownload(string downloadID)
+	public bool PauseDownload(string downloadId)
 	{
-		bool paused = downloadService.PauseDownload(downloadID);
+		var paused = downloadService.PauseDownload(downloadId);
 
 		if (paused)
-			Clients.All.DownloadPaused(downloadID);
+			Clients.All.DownloadPaused(downloadId);
 
 		return paused;
 	}
 
-	public bool ResumeDownload(string downloadID)
+	public bool ResumeDownload(string downloadId)
 	{
-		bool resumed = downloadService.ResumeDownload(downloadID);
+		var resumed = downloadService.ResumeDownload(downloadId);
 
 		if (resumed)
-			Clients.All.DownloadResumed(downloadID);
+			Clients.All.DownloadResumed(downloadId);
 
 		return resumed;
 	}
 
-	public void DeleteFile(string directoryName, string fileName) => directoryService.DeleteFile(directoryName, fileName);
+	public void DeleteFile(string directoryName, string fileName) =>
+		directoryService.DeleteFile(directoryName, fileName);
 
+	public IEnumerable<Download> GetActiveDownloads() =>
+		downloadService.ActiveDownloads;
 
-
-	public IEnumerable<Download> GetActiveDownloads() => downloadService.ActiveDownloads;
-	public IEnumerable<string> GetDownloadAllowedDirectoryNames() => directoryService.GetDownloadAllowedDirectories().Select(x => x.Name);
+	public IEnumerable<string> GetDownloadAllowedDirectoryNames() =>
+		directoryService.GetDownloadAllowedDirectories().Select(x => x.Name);
 
 	public IEnumerable<EditAllowedDirectoryInfo> GetAllowedDirectoryInfos()
 	{
