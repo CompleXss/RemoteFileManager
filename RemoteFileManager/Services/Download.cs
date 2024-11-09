@@ -17,14 +17,14 @@ public class Download : IDisposable
 
 	/// <summary> Total file length in bytes or -1 if this value is unknown. </summary>
 	public long TotalBytes { get; private set; }
+
 	public long BytesDownloaded { get; private set; }
 	public double Speed { get; set; }
 
 	public string FileName { get; private set; } = string.Empty;
 	public string DirectoryName { get; private set; } = string.Empty;
 
-	[JsonIgnore]
-	public string DirectoryPath { get; private set; } = string.Empty;
+	[JsonIgnore] public string DirectoryPath { get; private set; } = string.Empty;
 
 	public event Action? Started;
 	public event Action<bool>? Ended;
@@ -47,7 +47,6 @@ public class Download : IDisposable
 	private bool _disposed;
 
 
-
 	public Download(IHttpClientFactory httpClientFactory, ILogger logger, int bufferSize = 4096)
 	{
 		this.httpClientFactory = httpClientFactory;
@@ -56,7 +55,6 @@ public class Download : IDisposable
 
 		ID = Guid.NewGuid().ToString();
 	}
-
 
 
 	public async Task<bool> Start(Uri uri, DirectoryModel directory, string? fileName = null)
@@ -85,7 +83,6 @@ public class Download : IDisposable
 				return false;
 
 
-
 			// get fileName
 			if (!TryGetFileName(response, ref fileName))
 			{
@@ -100,12 +97,13 @@ public class Download : IDisposable
 				int extLength = TEMP_EXTENSION.Length;
 				fileName = fileName[..^extLength] + TEMP_EXTENSION_REPLACEMENT; // replace temp extension with '._' extension to avoid confusion
 
-				logger.LogWarning("Name of the downloading file had prohibited extension ({oldExtension}). It was replaced with ({newExtension})", TEMP_EXTENSION, TEMP_EXTENSION_REPLACEMENT);
+				logger.LogWarning("Name of the downloading file had prohibited extension ({oldExtension}). It was replaced with ({newExtension})",
+					TEMP_EXTENSION,
+					TEMP_EXTENSION_REPLACEMENT);
 			}
 
 			FileName = fileName = MakeFileNameUnique(directory.Path, fileName);
 			fileName += TEMP_EXTENSION; // add temp extension during download
-
 
 
 			Started?.Invoke();
@@ -113,8 +111,8 @@ public class Download : IDisposable
 			// Fire and forget
 			_ = Task.Run(async () =>
 			{
-				string tempFilePath = Path.Combine(directory.Path, fileName);
-				string finalFilePath = Path.Combine(directory.Path, this.FileName);
+				var tempFilePath = Path.Combine(directory.Path, fileName);
+				var finalFilePath = Path.Combine(directory.Path, this.FileName);
 
 				try
 				{
@@ -155,11 +153,11 @@ public class Download : IDisposable
 				}
 			}, token);
 
-
 			lock (this)
 			{
 				_started = true;
 			}
+
 			return true;
 		}
 		catch (Exception e)
@@ -186,10 +184,10 @@ public class Download : IDisposable
 		if (response.Content.Headers.ContentType?.MediaType != MediaTypeNames.Text.Html)
 			return true;
 
-		logger.LogWarning("Provided url's content is not an attachment and is text/html. It's probably not a file. Download aborted. Url: {url}", uri);
+		logger.LogWarning("Provided url's content is not an attachment and is text/html. It's probably not a file. Download aborted. Url: {url}",
+			uri);
 		return false;
 	}
-
 
 
 	private async Task DownloadFromResponse(HttpResponseMessage response, string filePath, CancellationToken token = default)
@@ -197,11 +195,10 @@ public class Download : IDisposable
 		var contentLength = response.Content.Headers.ContentLength;
 		TotalBytes = contentLength ?? -1;
 
-
 		using var source = await response.Content.ReadAsStreamAsync(token);
 		using var destination = new FileStream(filePath, FileMode.Create, FileAccess.Write);
 
-		byte[] buffer = new byte[bufferSize];
+		var buffer = new byte[bufferSize];
 		int bytesRead;
 
 		while ((bytesRead = await source.ReadAsync(buffer, token)) != 0)
@@ -216,34 +213,27 @@ public class Download : IDisposable
 		Done = true;
 	}
 
-
-
 	private static bool TryGetFileName(HttpResponseMessage response, [NotNullWhen(true)] ref string? fileName)
 	{
 		if (string.IsNullOrWhiteSpace(fileName))
-		{
 			return response.TryGetFileName(out fileName);
-		}
-		else if (Path.HasExtension(fileName))
-		{
-			return true;
-		}
-		else
-		{
-			if (response.TryGetFileName(out var responseName))
-			{
-				string extension = Path.GetExtension(responseName);
-				fileName = Path.ChangeExtension(fileName, extension);
-			}
 
+		if (Path.HasExtension(fileName))
 			return true;
-		}
+
+		if (!response.TryGetFileName(out var responseName))
+			return true;
+
+		var extension = Path.GetExtension(responseName);
+		fileName = Path.ChangeExtension(fileName, extension);
+
+		return true;
 	}
 
 	private static string MakeFileNameUnique(string directory, string fileName)
 	{
-		string name = Path.GetFileNameWithoutExtension(fileName);
-		string extension = Path.GetExtension(fileName);
+		var name = Path.GetFileNameWithoutExtension(fileName);
+		var extension = Path.GetExtension(fileName);
 		int tries = 1;
 
 		while (File.Exists(Path.Combine(directory, fileName)) || File.Exists(Path.Combine(directory, fileName + TEMP_EXTENSION)))
@@ -253,8 +243,6 @@ public class Download : IDisposable
 
 		return fileName;
 	}
-
-
 
 	private bool TryMoveFile(string from, string to, LogLevel failureLogLevel)
 	{
@@ -285,7 +273,6 @@ public class Download : IDisposable
 	}
 
 
-
 	public void Pause()
 	{
 		Paused = true;
@@ -303,7 +290,6 @@ public class Download : IDisposable
 	}
 
 
-
 	#region Dispose
 	public void Dispose()
 	{
@@ -313,17 +299,17 @@ public class Download : IDisposable
 
 	protected virtual void Dispose(bool disposing)
 	{
-		if (disposing && !_disposed)
-		{
-			lock (this)
-				if (!cancellationTokenSource.IsCancellationRequested)
-				{
-					cancellationTokenSource.Cancel();
-				}
+		if (!disposing || _disposed)
+			return;
 
-			cancellationTokenSource.Dispose();
-			_disposed = true;
-		}
+		lock (this)
+			if (!cancellationTokenSource.IsCancellationRequested)
+			{
+				cancellationTokenSource.Cancel();
+			}
+
+		cancellationTokenSource.Dispose();
+		_disposed = true;
 	}
 	#endregion
 }
