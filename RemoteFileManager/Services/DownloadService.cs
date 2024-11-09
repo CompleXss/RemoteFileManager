@@ -46,8 +46,7 @@ public sealed class DownloadService : IDisposable
 			return false;
 		}
 
-
-		var download = new Download(httpClientFactory, logger);
+		var download = new Download(uri, directory, httpClientFactory, logger);
 		var progressWorking = true;
 
 		download.Started += () =>
@@ -97,7 +96,7 @@ public sealed class DownloadService : IDisposable
 			hub.Clients.All.DownloadRemoved(download.ID, completed);
 		};
 
-		var started = await download.Start(uri, directory, fileName);
+		var started = await download.Start(fileName);
 
 		if (!started)
 			download.Dispose();

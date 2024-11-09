@@ -21,10 +21,10 @@ public class Download : IDisposable
 	public double Speed { get; set; }
 
 	public string FileName { get; private set; } = string.Empty;
-	public string DirectoryName { get; private set; } = string.Empty;
+	public string DirectoryName { get; private set; }
 
 	[JsonIgnore]
-	public string DirectoryPath { get; private set; } = string.Empty;
+	public string DirectoryPath { get; private set; }
 
 	public event Action? Started;
 	public event Action<bool>? Ended;
@@ -39,6 +39,7 @@ public class Download : IDisposable
 		}
 	}
 
+	private readonly Uri uri;
 	private readonly CancellationTokenSource cancellationTokenSource = new();
 	private readonly IHttpClientFactory httpClientFactory;
 	private readonly ILogger logger;
@@ -47,8 +48,11 @@ public class Download : IDisposable
 	private bool _disposed;
 
 
-	public Download(IHttpClientFactory httpClientFactory, ILogger logger, int bufferSize = 4096)
+	public Download(Uri uri, DirectoryModel directory, IHttpClientFactory httpClientFactory, ILogger logger, int bufferSize = 4096)
 	{
+		this.uri = uri;
+		this.DirectoryName = directory.Name;
+		this.DirectoryPath = directory.Path;
 		this.httpClientFactory = httpClientFactory;
 		this.logger = logger;
 		this.bufferSize = bufferSize;
@@ -57,7 +61,7 @@ public class Download : IDisposable
 	}
 
 
-	public async Task<bool> Start(Uri uri, DirectoryModel directory, string? fileName = null)
+	public async Task<bool> Start(string? fileName = null)
 	{
 		lock (this)
 		{
@@ -68,9 +72,6 @@ public class Download : IDisposable
 				return true;
 		}
 
-		DirectoryName = directory.Name;
-		DirectoryPath = directory.Path;
-
 		HttpResponseMessage? response = null;
 
 		try
@@ -79,7 +80,7 @@ public class Download : IDisposable
 			var client = httpClientFactory.CreateClient(); // should NOT be disposed!
 			response = await client.ReadResponseHeaders(uri, token);
 
-			if (!IsResponseHasFile(response, uri))
+			if (!IsResponseHasFile(response))
 				return false;
 
 
@@ -102,7 +103,7 @@ public class Download : IDisposable
 					TEMP_EXTENSION_REPLACEMENT);
 			}
 
-			FileName = fileName = MakeFileNameUnique(directory.Path, fileName);
+			FileName = fileName = MakeFileNameUnique(DirectoryPath, fileName);
 			fileName += TEMP_EXTENSION; // add temp extension during download
 
 
@@ -111,13 +112,13 @@ public class Download : IDisposable
 			// Fire and forget
 			_ = Task.Run(async () =>
 			{
-				var tempFilePath = Path.Combine(directory.Path, fileName);
-				var finalFilePath = Path.Combine(directory.Path, this.FileName);
+				var tempFilePath = Path.Combine(DirectoryPath, fileName);
+				var finalFilePath = Path.Combine(DirectoryPath, this.FileName);
 
 				try
 				{
-					if (!Directory.Exists(directory.Path))
-						Directory.CreateDirectory(directory.Path);
+					if (!Directory.Exists(DirectoryPath))
+						Directory.CreateDirectory(DirectoryPath);
 
 					await DownloadFromResponse(response, tempFilePath, token);
 
@@ -125,7 +126,7 @@ public class Download : IDisposable
 					if (!TryMoveFile(tempFilePath, finalFilePath, LogLevel.Information))
 					{
 						// try add (1) to file end
-						FileName = MakeFileNameUnique(directory.Path, FileName);
+						FileName = MakeFileNameUnique(DirectoryPath, FileName);
 						logger.LogInformation("Trying to rename file from '{from}' to '{to}'", tempFilePath, finalFilePath);
 
 						if (!TryMoveFile(tempFilePath, finalFilePath, LogLevel.Error))
@@ -170,7 +171,7 @@ public class Download : IDisposable
 		}
 	}
 
-	private bool IsResponseHasFile(HttpResponseMessage response, Uri uri)
+	private bool IsResponseHasFile(HttpResponseMessage response)
 	{
 		if (response.StatusCode != System.Net.HttpStatusCode.OK)
 		{
@@ -184,7 +185,8 @@ public class Download : IDisposable
 		if (response.Content.Headers.ContentType?.MediaType != MediaTypeNames.Text.Html)
 			return true;
 
-		logger.LogWarning("Provided url's content is not an attachment and is text/html. It's probably not a file. Download aborted. Url: {url}",
+		logger.LogWarning(
+			"Provided url's content is not an attachment and is text/html. It's probably not a file. Download aborted. Url: {url}",
 			uri);
 		return false;
 	}
