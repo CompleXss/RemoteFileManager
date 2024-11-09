@@ -18,21 +18,23 @@ public sealed class DirectoryService : IDisposable
 	private readonly List<IDisposable> watcherDisposables;
 	private readonly IDisposable? eventToDispose;
 
-	public DirectoryService(IOptionsMonitor<DirectoryOptions> options, IHubContext<AppHub, IAppHub> hub, ILogger<DirectoryService> logger, FileLogger fileLogger)
+	public DirectoryService(
+		IOptionsMonitor<DirectoryOptions> options,
+		IHubContext<AppHub, IAppHub> hub,
+		ILogger<DirectoryService> logger,
+		FileLogger fileLogger)
 	{
 		this.options = options;
 		this.hub = hub;
 		this.logger = logger;
 		this.fileLogger = fileLogger;
 
-
-
 		var directories = GetAllAllowedDirectories();
 		watcherDisposables = new(directories.Length * 2);
 
 		CreateWatchers(directories);
 
-		// Update fs watchers when appconfig file changes
+		// Update fs watchers when app config file changes
 		eventToDispose = options.OnChange(Helpers.Debounce<DirectoryOptions>(x =>
 		{
 			logger.LogInformation("App settings changed. Reloading file system watchers.");
@@ -42,7 +44,6 @@ public sealed class DirectoryService : IDisposable
 			hub.Clients.All.ShouldReloadDirectories();
 		}));
 	}
-
 
 
 	#region Watchers
@@ -56,10 +57,9 @@ public sealed class DirectoryService : IDisposable
 				Directory.CreateDirectory(directory.Path);
 
 			// Lock directory using empty file
-			string lockFilePath = Path.Combine(directory.Path, "$lockfile" + HIDDEN_TEMP_FILE_EXTENSION);
+			var lockFilePath = Path.Combine(directory.Path, "$lockfile" + HIDDEN_TEMP_FILE_EXTENSION);
 			var fs = new FileStream(lockFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 0, FileOptions.DeleteOnClose);
 			File.SetAttributes(fs.Name, FileAttributes.Hidden);
-
 
 			// Create watcher
 			var watcher = new FileSystemWatcher(directory.Path, "*.*")
@@ -69,15 +69,20 @@ public sealed class DirectoryService : IDisposable
 				IncludeSubdirectories = false,
 			};
 
-			var debouncedHandler = Helpers.Debounce<object, FileSystemEventArgs>((sender, e) => Watcher_onEvent(e, directory.Name));
+			var debouncedHandler = Helpers.Debounce<object, FileSystemEventArgs>(
+				(_, e) => Watcher_onEvent(e, directory.Name)
+			);
 			watcher.Changed += (sender, e) => debouncedHandler(sender, e);
 			watcher.Created += (sender, e) => debouncedHandler(sender, e);
 			watcher.Deleted += (sender, e) => debouncedHandler(sender, e);
 			watcher.Renamed += (sender, e) => debouncedHandler(sender, e);
-			watcher.Error += (sender, error) =>
+			watcher.Error += (_, error) =>
 			{
 				var e = error.GetException();
-				logger.LogError("{className} produced an error in directory `{directoryPath}`: {error}", nameof(FileSystemWatcher), directory.Path, e.Message);
+				logger.LogError("{className} produced an error in directory `{directoryPath}`: {error}",
+					nameof(FileSystemWatcher),
+					directory.Path,
+					e.Message);
 			};
 
 			watcherDisposables.Add(fs);
@@ -107,7 +112,6 @@ public sealed class DirectoryService : IDisposable
 	#endregion
 
 
-
 	#region Get directories
 	public DirectoryModel[] GetAllAllowedDirectories()
 		=> options.CurrentValue.AllowedDirectories;
@@ -118,7 +122,6 @@ public sealed class DirectoryService : IDisposable
 	public DirectoryModel? GetAllowedDirectoryInfoByName(string name)
 		=> GetAllAllowedDirectories().FirstOrDefault(x => x.Name == name);
 	#endregion
-
 
 
 	#region Files
@@ -134,11 +137,12 @@ public sealed class DirectoryService : IDisposable
 			return [];
 
 		var files = Directory.EnumerateFiles(directory.Path).Order();
-		var fileInfos = files.Where(x => !x.EndsWith(HIDDEN_TEMP_FILE_EXTENSION)).Select(x => new FileInfoModel
-		{
-			Name = Path.GetFileName(x),
-			LastModifiedTime = File.GetLastWriteTimeUtc(x)
-		});
+		var fileInfos = files.Where(x => !x.EndsWith(HIDDEN_TEMP_FILE_EXTENSION)).Select(
+			x => new FileInfoModel
+			{
+				Name = Path.GetFileName(x),
+				LastModifiedTime = File.GetLastWriteTimeUtc(x)
+			});
 
 		return fileInfos;
 	}
@@ -152,6 +156,7 @@ public sealed class DirectoryService : IDisposable
 			logger.InvalidDirectoryDeleteAborted(directoryName);
 			return false;
 		}
+
 		if (!directory.EditAllowed)
 		{
 			logger.ProhibitedDirectoryDeleteAborted(directoryName);
@@ -160,7 +165,7 @@ public sealed class DirectoryService : IDisposable
 
 		try
 		{
-			string fullPath = Path.GetFullPath(Path.Combine(directory.Path, fileName));
+			var fullPath = Path.GetFullPath(Path.Combine(directory.Path, fileName));
 
 			if (!File.Exists(fullPath))
 			{
@@ -184,7 +189,6 @@ public sealed class DirectoryService : IDisposable
 	#endregion
 
 
-
 	#region Disk space
 	public DiskSpaceInfo? GetDiskSpaceInfo(string directoryName)
 	{
@@ -197,13 +201,12 @@ public sealed class DirectoryService : IDisposable
 
 	public DiskSpaceInfo GetDiskSpaceInfo(DirectoryModel directory)
 	{
-		string absolutePath = Path.GetFullPath(directory.Path);
+		var absolutePath = Path.GetFullPath(directory.Path);
 		var drive = new DriveInfo(absolutePath);
 
 		return new DiskSpaceInfo(drive.AvailableFreeSpace, drive.TotalSize);
 	}
 	#endregion
-
 
 
 	#region Dispose

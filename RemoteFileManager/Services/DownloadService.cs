@@ -30,7 +30,6 @@ public sealed class DownloadService : IDisposable
 	}
 
 
-
 	/// <returns> True if download has started, False if not. </returns>
 	public async Task<bool> StartDownload(Uri uri, string directoryName, string? fileName = null)
 	{
@@ -40,6 +39,7 @@ public sealed class DownloadService : IDisposable
 			logger.InvalidDirectoryDownloadAborted(directoryName);
 			return false;
 		}
+
 		if (!directory.CreateAllowed)
 		{
 			logger.ProhibitedDirectoryDownloadAborted(directoryName);
@@ -47,9 +47,8 @@ public sealed class DownloadService : IDisposable
 		}
 
 
-
 		var download = new Download(httpClientFactory, logger);
-		bool progressWorking = true;
+		var progressWorking = true;
 
 		download.Started += () =>
 		{
@@ -76,9 +75,9 @@ public sealed class DownloadService : IDisposable
 					bytesDownloaded = download.BytesDownloaded;
 
 					_ = hub.Clients.All.DownloadUpdated(download.ID, bytesDownloaded, download.TotalBytes, download.Speed);
+
 					await Task.Delay(REPORT_PROGRESS_DELAY_MS);
-				}
-				while (progressWorking);
+				} while (progressWorking);
 			});
 		};
 
@@ -98,9 +97,7 @@ public sealed class DownloadService : IDisposable
 			hub.Clients.All.DownloadRemoved(download.ID, completed);
 		};
 
-
-
-		bool started = await download.Start(uri, directory, fileName);
+		var started = await download.Start(uri, directory, fileName);
 
 		if (!started)
 			download.Dispose();
@@ -109,15 +106,14 @@ public sealed class DownloadService : IDisposable
 	}
 
 
-
 	/// <summary> Tries to stop download with provided ID. </summary>
-	/// <returns> True if successfully stopeed. False if not. </returns>
-	public bool CancelDownload(string downloadID)
+	/// <returns> True if successfully stopped. False if not. </returns>
+	public bool CancelDownload(string downloadId)
 	{
-		var download = FindDownloadByID(downloadID);
+		var download = FindDownloadById(downloadId);
 		if (download is null || download.IsCancellationRequested)
 		{
-			logger.CouldNotCancelDownload(downloadID);
+			logger.CouldNotCancelDownload(downloadId);
 			return false;
 		}
 
@@ -128,18 +124,18 @@ public sealed class DownloadService : IDisposable
 		return true;
 	}
 
-	public bool PauseDownload(string downloadID)
+	public bool PauseDownload(string downloadId)
 	{
-		var download = FindDownloadByID(downloadID);
+		var download = FindDownloadById(downloadId);
 		if (download is null) return false;
 
 		download.Pause();
 		return true;
 	}
 
-	public bool ResumeDownload(string downloadID)
+	public bool ResumeDownload(string downloadId)
 	{
-		var download = FindDownloadByID(downloadID);
+		var download = FindDownloadById(downloadId);
 		if (download is null) return false;
 
 		download.Resume();
@@ -147,12 +143,10 @@ public sealed class DownloadService : IDisposable
 	}
 
 
-
-	public Download? FindDownloadByID(string downloadID)
+	public Download? FindDownloadById(string downloadId)
 	{
-		return ActiveDownloads.FirstOrDefault(x => x.ID == downloadID);
+		return ActiveDownloads.FirstOrDefault(x => x.ID == downloadId);
 	}
-
 
 
 	public void Dispose()
