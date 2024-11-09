@@ -17,14 +17,14 @@ public class Download : IDisposable
 
 	/// <summary> Total file length in bytes or -1 if this value is unknown. </summary>
 	public long TotalBytes { get; private set; }
-
 	public long BytesDownloaded { get; private set; }
 	public double Speed { get; set; }
 
 	public string FileName { get; private set; } = string.Empty;
 	public string DirectoryName { get; private set; } = string.Empty;
 
-	[JsonIgnore] public string DirectoryPath { get; private set; } = string.Empty;
+	[JsonIgnore]
+	public string DirectoryPath { get; private set; } = string.Empty;
 
 	public event Action? Started;
 	public event Action<bool>? Ended;
