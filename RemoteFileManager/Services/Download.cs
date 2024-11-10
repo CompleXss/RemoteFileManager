@@ -8,8 +8,9 @@ namespace RemoteFileManager.Services;
 
 public class Download : IDisposable
 {
-	public const string TEMP_EXTENSION_REPLACEMENT = "._";
+	private const string TEMP_EXTENSION_REPLACEMENT = "._";
 	private const string TEMP_EXTENSION = DirectoryService.HIDDEN_TEMP_FILE_EXTENSION;
+	private const int DEFAULT_BUFFER_SIZE = 8 * 1024;
 
 	public string ID { get; }
 	public bool Done { get; private set; }
@@ -48,7 +49,7 @@ public class Download : IDisposable
 	private bool _disposed;
 
 
-	public Download(Uri uri, DirectoryModel directory, IHttpClientFactory httpClientFactory, ILogger logger, int bufferSize = 4096)
+	public Download(Uri uri, DirectoryModel directory, IHttpClientFactory httpClientFactory, ILogger logger, int bufferSize = DEFAULT_BUFFER_SIZE)
 	{
 		this.uri = uri;
 		this.DirectoryName = directory.Name;
@@ -201,7 +202,6 @@ public class Download : IDisposable
 		using var destination = new FileStream(filePath, FileMode.Create, FileAccess.Write);
 
 		var buffer = new byte[bufferSize];
-		var pauseBuffer = new byte[1];
 		int bytesRead;
 
 		while ((bytesRead = await source.ReadAsync(buffer, token)) != 0)
@@ -210,10 +210,7 @@ public class Download : IDisposable
 			BytesDownloaded += bytesRead;
 
 			while (Paused)
-			{
 				await Task.Delay(1000, token);
-				_ = await source.ReadAsync(pauseBuffer, token);
-			}
 		}
 
 		Done = true;
