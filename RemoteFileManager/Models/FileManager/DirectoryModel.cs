@@ -1,4 +1,4 @@
-﻿namespace RemoteFileManager.Models;
+﻿namespace RemoteFileManager.Models.FileManager;
 
 public class DirectoryModel
 {

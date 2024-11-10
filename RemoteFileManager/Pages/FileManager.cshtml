@@ -1,8 +1,5 @@
-﻿@page
-@model IndexModel
-@{
-	ViewData["Title"] = "Home page";
-}
+﻿@page "/files"
+@model FileManagerModel
 
 <div class="grid text-center">
 	@* <h1 class="display-4">Welcome</h1> *@
@@ -160,7 +157,7 @@
 </div>
 
 
-
 <script type="text/javascript">
-	window.onload = () => connect()
+	window.connect = window.connectFileManager
+	window.onload = () => connectFileManager()
 </script>

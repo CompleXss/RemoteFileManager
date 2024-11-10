@@ -1,10 +1,10 @@
-﻿using RemoteFileManager.Extensions;
-using RemoteFileManager.Models;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
+using System.Text.Json.Serialization;
+using RemoteFileManager.Extensions;
+using RemoteFileManager.Models.FileManager;
 
-namespace RemoteFileManager.Services;
+namespace RemoteFileManager.Services.FileManager;
 
 public class Download : IDisposable
 {

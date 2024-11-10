@@ -1,26 +1,33 @@
-using RemoteFileManager.Configuration;
 using RemoteFileManager.Hubs;
+using RemoteFileManager.Options;
 using RemoteFileManager.Services;
+using RemoteFileManager.Services.AppRunner;
+using RemoteFileManager.Services.FileManager;
 
 var builder = WebApplication.CreateSlimBuilder(args);
-builder.WebHost.UseKestrelHttpsConfiguration();
 
-builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
+builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 
+builder.Services.AddSingleton<IAppLogService, AppLogService>();
+builder.Services.AddSingleton<IProcessRunnerService, ProcessRunnerService>();
 builder.Services.AddSingleton<DirectoryService>();
 builder.Services.AddSingleton<DownloadService>();
 builder.Services
-	.AddOptions<DirectoryOptions>()
-	.Bind(builder.Configuration.GetSection(DirectoryOptions.SECTION_KEY))
+	.AddOptions<FileManagerOptions>()
+	.Bind(builder.Configuration.GetSection(FileManagerOptions.SECTION_KEY))
+	.ValidateDataAnnotations()
+	.ValidateOnStart();
+builder.Services
+	.AddOptions<AppRunnerOptions>()
+	.Bind(builder.Configuration.GetSection(AppRunnerOptions.SECTION_KEY))
 	.ValidateDataAnnotations()
 	.ValidateOnStart();
 
-string logFilePathConfigurationPath = $"{DirectoryOptions.SECTION_KEY}:{nameof(DirectoryOptions.FilesChangesLogFile)}";
-string? logFilePath = builder.Configuration.GetValue<string>(logFilePathConfigurationPath);
+const string logFilePathConfigurationPath = $"{FileManagerOptions.SECTION_KEY}:{nameof(FileManagerOptions.FilesChangesLogFile)}";
+var logFilePath = builder.Configuration.GetValue<string>(logFilePathConfigurationPath);
 builder.Logging.Services.AddSingleton(x => new FileLogger(logFilePath));
-
 
 
 var app = builder.Build();
@@ -32,8 +39,6 @@ if (app.Environment.IsDevelopment())
 else
 {
 	app.UseExceptionHandler("/error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-	app.UseHsts();
 }
 
 // Handle 404
@@ -47,11 +52,11 @@ app.Use(async (context, next) =>
 	}
 });
 
-//app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.MapHub<AppHub>("/hub");
+app.MapHub<AppRunnerHub>("/app-runner");
+app.MapHub<FileManagerHub>("/file-manager");
 app.MapRazorPages();
 
 app.Run();

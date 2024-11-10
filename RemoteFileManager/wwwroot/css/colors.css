@@ -1,0 +1,26 @@
+﻿:root {
+    --red: #ed0000;
+    --orange: orange;
+    --background-color: #edeef0;
+    --foreground-color: white;
+    --border-color: #ccc;
+    --button-background-color: #edeef0;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --text-color: black;
+    --reconnect-text-color: #3857ff;
+    --log-text-color: black;
+    --log-background-color: #edeef0;
+}
+
+html.dark_mode {
+    --red: #ff4d4d;
+    --background-color: #1e1e1e;
+    --foreground-color: #282828;
+    --border-color: #484848;
+    --button-background-color: whitesmoke;
+    --shadow-color: rgba(0, 0, 0, 0.6);
+    --text-color: whitesmoke;
+    --reconnect-text-color: #90a1ff;
+    --log-text-color: #c8c8c8;
+    --log-background-color: #151515;
+}

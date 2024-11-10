@@ -1,7 +1,7 @@
 ﻿export class ConnectionApiCaller {
     /**
      * @constructor
-     * @param {any} connection signalR HubConnection
+     * @param {SignalrConnection} connection
      */
     constructor(connection) {
         this.connection = connection

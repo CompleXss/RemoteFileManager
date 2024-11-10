@@ -1,20 +1,8 @@
-﻿import {
-    connect,
-    clearCompletedDownloads,
-    deleteFile,
-    editDirectoryOnChange,
-    getActiveDownloads,
-    reloadDownloadDirectories,
-    reloadFileManager,
-    startDownload
-} from './site.js'
+import {toggleTheme} from "./site.js";
+import {exportGlobals_AppRunner} from "./app_runner/exportGlobals.js";
+import {exportGlobals_FileManager} from "./file_manager/exportGlobals.js";
 
+window.toggleTheme = toggleTheme
 
-window.connect = connect
-window.clearCompletedDownloads = clearCompletedDownloads
-window.deleteFile = deleteFile
-window.editDirectoryOnChange = editDirectoryOnChange
-window.getActiveDownloads = getActiveDownloads
-window.reloadDownloadDirectories = reloadDownloadDirectories
-window.reloadFileManager = reloadFileManager
-window.startDownload = startDownload
+exportGlobals_AppRunner()
+exportGlobals_FileManager()

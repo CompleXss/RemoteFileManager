@@ -2,21 +2,21 @@
 using RemoteFileManager.Extensions;
 using RemoteFileManager.Hubs;
 
-namespace RemoteFileManager.Services;
+namespace RemoteFileManager.Services.FileManager;
 
 public sealed class DownloadService : IDisposable
 {
 	private const int REPORT_PROGRESS_DELAY_MS = 500; // todo: extract to options
 
 	public List<Download> ActiveDownloads { get; } = new(16); // todo: make it thread safe
-	private readonly IHubContext<AppHub, IAppHub> hub;
+	private readonly IHubContext<FileManagerHub, IFileManagerHub> hub;
 	private readonly DirectoryService directoryService;
 	private readonly IHttpClientFactory httpClientFactory;
 	private readonly ILogger<DownloadService> logger;
 	private readonly FileLogger fileLogger;
 
 	public DownloadService(
-		IHubContext<AppHub, IAppHub> hub,
+		IHubContext<FileManagerHub, IFileManagerHub> hub,
 		DirectoryService directoryService,
 		IHttpClientFactory httpClientFactory,
 		ILogger<DownloadService> logger,

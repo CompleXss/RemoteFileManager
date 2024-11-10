@@ -1,10 +1,11 @@
 ﻿using RemoteFileManager.Models;
+using RemoteFileManager.Models.FileManager;
 
-namespace RemoteFileManager.Configuration;
+namespace RemoteFileManager.Options;
 
-public class DirectoryOptions
+public class FileManagerOptions
 {
-	public const string SECTION_KEY = "Directories";
+	public const string SECTION_KEY = "FileManager";
 
 	public DirectoryModel[] AllowedDirectories { get; init; } = [];
 	public string? FilesChangesLogFile { get; init; } = null;

@@ -1,0 +1,27 @@
+﻿nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    height: 40px;
+    padding: 0.5rem 10%;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--foreground-color);
+}
+
+.app_name {
+    font-size: 1.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 50px;
+    text-decoration: none;
+    margin-right: 1.5rem;
+    color: var(--text-color);
+}
+
+.app_name:active {
+    transform: translateY(1px);
+}

@@ -1,4 +1,4 @@
-﻿namespace RemoteFileManager.Models;
+﻿namespace RemoteFileManager.Models.FileManager;
 
 public readonly struct FileInfoModel(string name, DateTime lastModifiedTime)
 {

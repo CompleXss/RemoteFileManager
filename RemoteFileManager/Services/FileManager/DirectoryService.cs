@@ -1,26 +1,26 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
-using RemoteFileManager.Configuration;
 using RemoteFileManager.Extensions;
 using RemoteFileManager.Hubs;
-using RemoteFileManager.Models;
+using RemoteFileManager.Models.FileManager;
+using RemoteFileManager.Options;
 
-namespace RemoteFileManager.Services;
+namespace RemoteFileManager.Services.FileManager;
 
 public sealed class DirectoryService : IDisposable
 {
 	public const string HIDDEN_TEMP_FILE_EXTENSION = ".~";
 
-	private readonly IOptionsMonitor<DirectoryOptions> options;
-	private readonly IHubContext<AppHub, IAppHub> hub;
+	private readonly IOptionsMonitor<FileManagerOptions> options;
+	private readonly IHubContext<FileManagerHub, IFileManagerHub> hub;
 	private readonly ILogger<DirectoryService> logger;
 	private readonly FileLogger fileLogger;
 	private readonly List<IDisposable> watcherDisposables;
 	private readonly IDisposable? eventToDispose;
 
 	public DirectoryService(
-		IOptionsMonitor<DirectoryOptions> options,
-		IHubContext<AppHub, IAppHub> hub,
+		IOptionsMonitor<FileManagerOptions> options,
+		IHubContext<FileManagerHub, IFileManagerHub> hub,
 		ILogger<DirectoryService> logger,
 		FileLogger fileLogger)
 	{
@@ -35,7 +35,7 @@ public sealed class DirectoryService : IDisposable
 		CreateWatchers(directories);
 
 		// Update fs watchers when app config file changes
-		eventToDispose = options.OnChange(Helpers.Debounce<DirectoryOptions>(x =>
+		eventToDispose = options.OnChange(Helpers.Debounce<FileManagerOptions>(x =>
 		{
 			logger.LogInformation("App settings changed. Reloading file system watchers.");
 			CreateWatchers(x.AllowedDirectories);

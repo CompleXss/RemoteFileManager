@@ -1,17 +1,30 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using RemoteFileManager.Extensions;
 using RemoteFileManager.Models;
+using RemoteFileManager.Models.FileManager;
 using RemoteFileManager.Services;
+using RemoteFileManager.Services.FileManager;
 
 namespace RemoteFileManager.Hubs;
 
-public class AppHub : Hub<IAppHub>
+public interface IFileManagerHub
+{
+	Task DownloadAdded(Download download);
+	Task DownloadRemoved(string downloadId, bool completed);
+	Task DownloadPaused(string downloadId);
+	Task DownloadResumed(string downloadId);
+	Task DownloadUpdated(string downloadId, long bytesDownloaded, long totalBytes, double speed);
+	Task DirectoryUpdated(string directoryName, DiskSpaceInfo diskSpace, IEnumerable<FileInfoModel> files);
+	Task ShouldReloadDirectories();
+}
+
+public class FileManagerHub : Hub<IFileManagerHub>
 {
 	private readonly DownloadService downloadService;
 	private readonly DirectoryService directoryService;
-	private readonly ILogger<AppHub> logger;
+	private readonly ILogger<FileManagerHub> logger;
 
-	public AppHub(DownloadService downloadService, DirectoryService directoryService, ILogger<AppHub> logger)
+	public FileManagerHub(DownloadService downloadService, DirectoryService directoryService, ILogger<FileManagerHub> logger)
 	{
 		this.downloadService = downloadService;
 		this.directoryService = directoryService;
