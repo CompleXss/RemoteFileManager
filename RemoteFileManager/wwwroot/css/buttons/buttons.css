@@ -1,0 +1,66 @@
+﻿@import url(themeButton.css);
+
+#reconnect_button {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    text-decoration: underline;
+    margin-left: 0.5em;
+    color: var(--reconnect-text-color);
+}
+
+.buttons button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--button-background-color);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .buttons button:hover {
+        background-color: #ddd;
+    }
+}
+
+.buttons button:active {
+    background-color: #ccc;
+}
+
+
+
+/* block buttons */
+.block button {
+    border-radius: 6px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding: 2px 12px;
+    border: 1px solid gray;
+
+    background-color: white;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100%;
+}
+.block button:hover {
+    background-color: #eee;
+}
+.block button:active {
+    background-color: #dfdfdf;
+}
+
+.block .refresh_button {
+    display: inline;
+    aspect-ratio: 1;
+    height: 30px;
+    border-radius: 6px;
+
+    margin: 4px;
+    margin-right: 0;
+
+    background-image: url(../../svg/refresh.svg);
+    background-size: 80%;
+}

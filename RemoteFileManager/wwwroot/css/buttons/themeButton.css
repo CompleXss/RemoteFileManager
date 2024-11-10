@@ -1,4 +1,4 @@
-﻿#theme_button {
+#theme_button {
     cursor: pointer;
     flex-grow: 0;
     flex-shrink: 0;
@@ -23,36 +23,9 @@ html.dark_mode #theme_button div::after {
     content: 'Dark 🌙';
 }
 
-#reconnect_button {
-    cursor: pointer;
-    user-select: none;
-    white-space: nowrap;
-    text-decoration: underline;
-    margin-left: 0.5em;
-    color: var(--reconnect-text-color);
-}
-
-.buttons button {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    border: none;
-    border-radius: 4px;
-    background-color: var(--button-background-color);
-}
 
 @media (hover: hover) and (pointer: fine) {
     #theme_button:hover {
         box-shadow: 0 0 4px var(--border-color);
     }
-
-    .buttons button:hover {
-        background-color: #ddd;
-    }
-}
-
-.buttons button:active {
-    background-color: #ccc;
 }
