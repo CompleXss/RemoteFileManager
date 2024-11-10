@@ -1,6 +1,7 @@
 ﻿:root {
-    --red: #ed0000;
     --orange: orange;
+
+    --red: #ed0000;
     --background-color: #edeef0;
     --foreground-color: white;
     --border-color: #ccc;
