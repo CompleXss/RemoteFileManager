@@ -13,9 +13,9 @@
     margin: var(--download-margin);
     padding: 6px 10px;
     border-radius: 6px;
-    background-color: #eee;
+    background-color: var(--background-color);
 
-    border: var(--download-border-width) solid lightgray;
+    border: var(--download-border-width) solid var(--border-color);
 }
 
 .download .text_wrapper {
@@ -30,7 +30,6 @@
     flex-direction: row;
     align-items: center;
 }
-
 
 
 .download p {
@@ -49,9 +48,8 @@
 
     padding: 0 8px;
     border-radius: 6px;
-    background-color: lightgray;
+    background-color: var(--background-color-overlay);
 }
-
 
 
 .download .progress {
@@ -60,40 +58,49 @@
     margin: 0;
     margin-top: 2px;
     margin-bottom: 2px;
+    border-radius: 0;
 }
-
 
 
 .download button {
     display: inline;
     aspect-ratio: 1;
     height: 36px;
-
+    padding: 0;
     border: none;
     background-color: transparent;
 }
 
+.download button:after {
+    display: block;
+    content: '';
+    height: 100%;
+    width: 100%;
+    background-color: var(--text-color);
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
 .download button:hover {
-    background-color: lightgray;
+    background-color: var(--background-color-overlay);
+    box-shadow: none;
 }
 
 .download button:active {
     background-color: #cacaca;
 }
 
-.download .cancel_button {
-    background-image: url(../svg/close.svg);
-    background-size: 55%;
-
-    margin-left: 4px;
+.download .cancel_button:after {
+    mask-image: url(../svg/close.svg);
+    mask-size: 55%;
 }
 
-.download .pause_button {
-    background-image: url(../svg/pause.svg);
-    background-size: 85%;
+.download .pause_button:after {
+    mask-image: url(../svg/pause.svg);
+    mask-size: 85%;
 }
 
-.download .resume_button {
-    background-image: url(../svg/playback.svg);
-    background-size: 55%;
+.download .resume_button:after {
+    mask-image: url(../svg/playback.svg);
+    mask-size: 55%;
 }

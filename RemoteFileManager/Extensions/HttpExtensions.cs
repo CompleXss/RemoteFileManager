@@ -11,19 +11,19 @@ public static class HttpExtensions
 
 	public static bool TryGetFileName(this HttpResponseMessage response, [NotNullWhen(true)] out string? filename)
 	{
-		if (response.RequestMessage is null || response.RequestMessage.RequestUri is null)
+		if (response.RequestMessage?.RequestUri is null)
 		{
 			filename = null;
 			return false;
 		}
 
-		Uri uri = response.RequestMessage.RequestUri;
+		var uri = response.RequestMessage.RequestUri;
 		var ctxDisposition = response.Content.Headers.ContentDisposition;
 
 		filename =
 			ctxDisposition?.FileNameStar?.RemoveQuotationMarksIfPresent()
 			?? ctxDisposition?.FileName?.RemoveQuotationMarksIfPresent()
-				?? Path.GetFileName(uri.LocalPath);
+			?? Path.GetFileName(uri.LocalPath);
 
 		return true;
 	}

@@ -1,0 +1,29 @@
+#theme_button {
+    flex-grow: 0;
+    flex-shrink: 0;
+    justify-self: end;
+    margin-left: auto;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+}
+
+html:not(.dark_mode) #theme_button div::after {
+    content: 'Light ☀️';
+}
+
+html.dark_mode #theme_button div::after {
+    content: 'Dark 🌙';
+}
+
+
+@media (hover: hover) and (pointer: fine) {
+    #theme_button:hover {
+        box-shadow: 0 0 4px var(--border-color);
+    }
+}
+
+#theme_button div:active {
+    transform: translateY(1px);
+}

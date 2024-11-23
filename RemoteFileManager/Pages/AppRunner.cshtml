@@ -1,0 +1,51 @@
+﻿@page "/apps"
+@model AppRunnerModel
+
+<div class="container">
+    <div class="left_panel">
+        <div class="container_header">App</div>
+        <hr />
+        <select id="app_select" onchange="appSelectOnChange(this.value)">
+            @foreach (var appName in Model.AppNames)
+            {
+                <option value="@appName">@appName</option>
+            }
+        </select>
+        <div class="status">
+            <div id="status_indicator"></div>
+            <span id="status_text">Stopped</span>
+        </div>
+        <div class="buttons">
+            <button onclick="startApp()">Start</button>
+            <button onclick="restartApp()">Restart</button>
+            <button onclick="stopApp()">Stop</button>
+        </div>
+    </div>
+
+    <div class="right_panel">
+        @{
+            var appNames = Model.AppNames;
+            if (appNames.Length == 0) return;
+
+            // only first one should be visible
+            <div class="logs_container" id="@appNames[0]_logs">
+                <div class="anchor"></div>
+            </div>
+
+            for (int i = 1; i < appNames.Length; i++)
+            {
+                <div class="logs_container hidden" id="@appNames[i]_logs">
+                    <div class="anchor"></div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+
+<script type="text/javascript">
+	window.onload = () => {
+	    window.reconnect = connectAppRunner
+	    connectAppRunner()
+	}
+</script>

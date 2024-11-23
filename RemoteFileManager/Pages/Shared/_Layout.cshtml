@@ -1,35 +1,34 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - RemoteFileManager</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/download.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/RemoteFileManager.styles.css" asp-append-version="true" />
+    <title>RemoteFileManager</title>
+    <link rel="stylesheet" href="~/css/index.css" asp-append-version="true" />
+    <script src="~/js/head.js"></script>
 </head>
+
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="myContainer">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">RemoteFileManager</a>
-                <div id="connectionState" class="d-inline"></div>
-                <a id="reconnect_button" onclick="connect()" hidden> (try again) </a>
-            </div>
-        </nav>
-    </header>
+    <nav>
+        <a class="app_name" asp-area="" asp-page="/AppRunner" r>AppRunner</a>
+        <a class="app_name" asp-area="" asp-page="/FileManager">FileManager</a>
+        <div id="connection_state"></div>
+        <a id="reconnect_button" onclick="reconnect()" hidden>(try again)</a>
+        <button id="theme_button" onclick="toggleTheme()">
+            <div></div>
+        </button>
+    </nav>
 
-    <div class="myContainer">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    <main role="main">
+        @RenderBody()
+    </main>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" type="module"></script>
+    <script src="~/lib/ansi-to-html/ansi-to-html.browser.js"></script>
+    <script src="~/js/appRunner/appRunner.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/fileManager/fileManager.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/exportGlobals.js" type="module" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
