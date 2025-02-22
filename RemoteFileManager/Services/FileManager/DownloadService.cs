@@ -8,11 +8,20 @@ using RemoteFileManager.Options;
 
 namespace RemoteFileManager.Services.FileManager;
 
+record FailedDownloadInfo
+{
+	public required string ID { get; init; }
+	public required string? FileName { get; init; }
+	public required string DirectoryName { get; init; }
+	public required string Url { get; init; }
+}
+
 public sealed class DownloadService : IDisposable
 {
 	private const int REPORT_PROGRESS_DELAY_MS = 500; // todo: extract to options
 
 	public List<Download> ActiveDownloads { get; } = new(16); // todo: make it thread safe
+	private List<FailedDownloadInfo> FailedDownloadInfos { get; } = new(16); // todo: make it thread safe
 	private readonly IHubContext<FileManagerHub, IFileManagerHub> hub;
 	private readonly DirectoryService directoryService;
 	private readonly IHttpClientFactory httpClientFactory;
@@ -86,7 +95,8 @@ public sealed class DownloadService : IDisposable
 					_ = hub.Clients.All.DownloadUpdated(download.ID, bytesDownloaded, download.TotalBytes, download.Speed);
 
 					await Task.Delay(REPORT_PROGRESS_DELAY_MS);
-				} while (progressWorking);
+				}
+				while (progressWorking);
 			});
 		};
 
@@ -102,6 +112,14 @@ public sealed class DownloadService : IDisposable
 				logger.DownloadCompleted(download);
 				fileLogger.DownloadCompleted(download);
 			}
+			else
+				FailedDownloadInfos.Add(new FailedDownloadInfo
+				{
+					ID = download.ID,
+					FileName = fileName,
+					DirectoryName = directoryName,
+					Url = url,
+				});
 
 			hub.Clients.All.DownloadRemoved(download.ID, completed);
 		};
@@ -112,6 +130,15 @@ public sealed class DownloadService : IDisposable
 			download.Dispose();
 
 		return started;
+	}
+
+	public async Task<bool> RestartDownload(string downloadId)
+	{
+		var info = FailedDownloadInfos.FirstOrDefault(x => x.ID == downloadId);
+		if (info is null) return false;
+
+		FailedDownloadInfos.Remove(info);
+		return await StartDownload(info.Url, info.DirectoryName, info.FileName);
 	}
 
 

@@ -104,3 +104,8 @@
     mask-image: url(../svg/playback.svg);
     mask-size: 55%;
 }
+
+.download .restart_button:after {
+    mask-image: url(../svg/refresh.svg);
+    mask-size: 55%;
+}

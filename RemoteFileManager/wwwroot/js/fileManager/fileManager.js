@@ -195,6 +195,19 @@ function onDownloadRemoved(downloadID, completed) {
     const cancel_button = download.querySelector('.cancel_button')
     cancel_button.onclick = () => download.remove()
 
+    // restart button
+    const restartButton = document.createElement('button')
+    restartButton.className = 'restart_button'
+    restartButton.onclick = () => {
+        api.restartDownloadRequest(downloadID)
+        download.remove()
+    }
+
+    const top_wrapper = download.querySelector('.top_wrapper')
+    top_wrapper.removeChild(cancel_button)
+    top_wrapper.appendChild(restartButton)
+    top_wrapper.appendChild(cancel_button)
+
     download.querySelector('.downloadInfo')?.remove()
     download.querySelector('.pause_button')?.remove()
     download.querySelector('.resume_button')?.remove()

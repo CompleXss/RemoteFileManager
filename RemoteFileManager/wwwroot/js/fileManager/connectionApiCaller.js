@@ -10,6 +10,9 @@
     startDownloadRequest(downloadLink, directoryName, fileName) {
         return this.connection.invoke('StartDownload', downloadLink, directoryName, fileName)
     }
+    restartDownloadRequest(downloadId) {
+        return this.connection.invoke('RestartDownload', downloadId)
+    }
     cancelDownloadRequest(id) {
         return this.connection.invoke('CancelDownload', id)
     }

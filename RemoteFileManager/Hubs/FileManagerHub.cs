@@ -31,6 +31,11 @@ public class FileManagerHub : Hub<IFileManagerHub>
 		return await downloadService.StartDownload(url, directoryName, fileName);
 	}
 
+	public Task<bool> RestartDownload(string downloadId)
+	{
+		return downloadService.RestartDownload(downloadId);
+	}
+
 	public bool CancelDownload(string downloadId)
 	{
 		var cancelled = downloadService.CancelDownload(downloadId);
